@@ -55,7 +55,7 @@ var 종목별_일일가격정보_질의_도우미 = 종목별_일일가격정보
 var M가격정보_맵_파일_잠금 = new(sync.Mutex)
 const P가격정보_맵_파일명 = "yahoo_daily_price.dat"
 
-func F전종목_일일가격정보_확보() (map[string]([]*공용.S일일_종목정보), map[string]*공용.S에러내역) {
+func F전종목_일일가격정보_확보_야후() (map[string]([]*공용.S일일_종목정보), map[string]*공용.S에러내역) {
 	가격정보_맵 := make(map[string]([]*공용.S일일_종목정보))
 	에러내역_맵 := make(map[string]*공용.S에러내역)
 	종목모음_질의대상, 에러 := 공용.F종목모음_전체()
@@ -70,7 +70,7 @@ func F전종목_일일가격정보_확보() (map[string]([]*공용.S일일_종�
 			종목별_가격정보_모음, 에러내역 := F종목별_일일가격정보_질의(종목)
 			if 에러내역 != nil {
 				에러내역_맵[종목.G코드()] =에러내역
-				공용.F문자열_출력(에러내역)
+				공용.F문자열_출력("%v", 에러내역)
 				종목모음_에러발생 = append(종목모음_에러발생, 종목)
 
 				time.Sleep(공용.P30초)
@@ -125,9 +125,9 @@ func 종목별_일일가격정보_질의_도우미_야후(종목 *공용.S종목
 	응답, 에러 := http.Get(야후_가격정보_질의_URL생성(종목, 시작일, 종료일))
 	switch {
 	case 에러 != nil:
-		return _, 공용.New에러내역("HTTP요청 에러", 에러.Error())
+		return nil, 공용.New에러내역("HTTP요청 에러", 에러.Error())
 	case 응답.Body == nil:
-		return _, 공용.New에러내역("nil 응답", "응답.Body가 nil입니다.")
+		return nil, 공용.New에러내역("nil 응답", "응답.Body가 nil입니다.")
 	}
 
 	defer 응답.Body.Close() // panic이 발생하면 하지 말 것.
@@ -135,20 +135,20 @@ func 종목별_일일가격정보_질의_도우미_야후(종목 *공용.S종목
 	응답내용, 에러 := ioutil.ReadAll(응답.Body)
 	switch {
 	case 에러 != nil:
-		return _, 공용.New에러내역("응답 Read에러", 에러.Error())
+		return nil, 공용.New에러내역("응답 Read에러", 에러.Error())
 	case len(응답내용) == 0:
-		return _, 공용.New에러내역("비어있는 응답", "응답내용 바이트 배열의 길이가 0입니다.")
+		return nil, 공용.New에러내역("비어있는 응답", "응답내용 바이트 배열의 길이가 0입니다.")
 	case strings.Contains(string(응답내용), "the page you requested was not found."):
-		return _, 공용.New에러내역("HTTP 404", "HTTP페이지를 찾을 수 없습니다.")
+		return nil, 공용.New에러내역("HTTP 404", "HTTP페이지를 찾을 수 없습니다.")
 	}
 
 	레코드_모음, 에러 := csv.NewReader(응답.Body).ReadAll()
 	switch {
 	case 에러 != nil:
-		return _, 공용.New에러내역("CSV읽기 에러", 에러.Error() + "\n" + string(응답내용))
+		return nil, 공용.New에러내역("CSV읽기 에러", 에러.Error() + "\n" + string(응답내용))
 	case len(레코드_모음) < 1:
 		// 가격데이터가 없거나, CSV로 해석불가능하면 무시
-		return _, 공용.New에러내역("CSV읽기 에러", "CSV 레코드 수량이 0개" + string(응답내용))
+		return nil, 공용.New에러내역("CSV읽기 에러", "CSV 레코드 수량이 0개" + string(응답내용))
 	}
 
 	// 첫째 줄(레코드_모음[0])은  제목이라서 제거한다.
@@ -160,9 +160,9 @@ func 종목별_일일가격정보_질의_도우미_야후(종목 *공용.S종목
 func 야후_가격정보_질의_URL생성(종목 *공용.S종목, 시작일 time.Time, 종료일 time.Time) string {
 	var 시장구분 string
 
-	if strings.Contains(종목.G시장구분(), "유가증권시장") {
+	if strings.Contains(string(종목.G시장구분()), "유가증권시장") {
 		시장구분 = ".KS" // 유가증권 시장
-	} else if strings.Contains(종목.G시장구분(), "코스닥") {
+	} else if strings.Contains(string(종목.G시장구분()), "코스닥") {
 		시장구분 = ".KQ" // 코스닥 시장
 	}
 
@@ -199,7 +199,7 @@ func 야후_연월일_문자열(일자 time.Time) (연도 string, 월 string, �
 	// Yahoo! Finanace API규격상 월(Month)은 1을 빼주어야 한다고 함. Java도 이런 식이라서 엄청 헷갈렸는 데.
 	// (참고자료 : https://code.google.com/p/yahoo-finance-managed/wiki/csvHistQuotesDownload)
 	연도 = strconv.Itoa(일자.Year())
-	월 = strconv.Itoa(일자.Month() - 1)
+	월 = strconv.Itoa(int(일자.Month()) - 1)
 	일 = strconv.Itoa(일자.Day())
 
 	return 연도, 월, 일
@@ -209,7 +209,8 @@ func 종목별_일일가격정보_모음_생성_도우미(
 	종목 *공용.S종목, 레코드_모음 [][]string) (일일_종목정보_모음 []*공용.S일일_종목정보, 에러내역 *공용.S에러내역) {
 	defer func() {
 		if r := recover(); r != nil {
-			return nil, 공용.New에러내역("일일가격정보 생성 에러", 공용.F포맷된_문자열("%", r))
+			일일_종목정보_모음 = nil
+			에러내역 = 공용.New에러내역("일일가격정보 생성 에러", 공용.F포맷된_문자열("%", r))
 		}
 	}()
 
