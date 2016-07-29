@@ -38,7 +38,6 @@ import (
 
 	"bytes"
 	"fmt"
-	"math"
 	"sort"
 	"strconv"
 	"time"
@@ -97,7 +96,7 @@ func (s S일일가격정보_저장소) g일자_도우미(일자_모음 []time.Ti
 		return 일자_모음[금일_인덱스+일자_차이], nil
 	}
 
-	return time.Time{}, 공용.New에러("금일을 찾을 수 없음. %v", 금일.Format("2006-01-02"))
+	return time.Time{}, 공용.New에러("금일을 찾을 수 없음. %v", 금일.Format(공용.P일자_형식))
 }
 
 func (s S일일가격정보_저장소) g종목별_일자(종목코드 string, 기준일 time.Time, 일자_차이 int) (time.Time, error) {
@@ -109,7 +108,7 @@ func (s S일일가격정보_저장소) G종목별_전일(종목코드 string, �
 }
 
 func (s S일일가격정보_저장소) G종목별_과거_일자(종목코드 string, 기준일 time.Time, 일자_차이 int) (time.Time, error) {
-	일자_차이 = int(math.Abs(float64(일자_차이)))
+	일자_차이 = int(공용.F2절대값(일자_차이))
 	return s.g종목별_일자(종목코드, 기준일, 일자_차이*-1)
 }
 
@@ -118,7 +117,7 @@ func (s S일일가격정보_저장소) G종목별_명일(종목코드 string, �
 }
 
 func (s S일일가격정보_저장소) G종목별_미래_일자(종목코드 string, 기준일 time.Time, 일자_차이 int) (time.Time, error) {
-	일자_차이 = int(math.Abs(float64(일자_차이)))
+	일자_차이 = int(공용.F2절대값(일자_차이))
 	return s.g종목별_일자(종목코드, 기준일, 일자_차이)
 }
 
@@ -153,7 +152,7 @@ func (s S일일가격정보_저장소) G전종목_전일(금일 time.Time) (time
 }
 
 func (s S일일가격정보_저장소) G전종목_과거_일자(금일 time.Time, 일자_차이 int) (time.Time, error) {
-	일자_차이 = int(math.Abs(float64(일자_차이)))
+	일자_차이 = int(공용.F2절대값(일자_차이))
 	return s.g전종목_일자(금일, 일자_차이*-1)
 }
 
@@ -162,7 +161,7 @@ func (s S일일가격정보_저장소) G전종목_명일(금일 time.Time) (time
 }
 
 func (s S일일가격정보_저장소) G전종목_미래_일자(금일 time.Time, 일자_차이 int) (time.Time, error) {
-	일자_차이 = int(math.Abs(float64(일자_차이)))
+	일자_차이 = int(공용.F2절대값(일자_차이))
 	return s.g전종목_일자(금일, 일자_차이)
 }
 
@@ -217,7 +216,7 @@ func (s S일일가격정보_저장소) G단순이동평균(종목코드 string, 
 		return 0, 공용.New에러("잘못된 기간입니다. %v", 기간by일)
 	case len(가격정보_일자_모음) < 기간by일,
 		기준일.Before(s.G전종목_일자_모음()[기간by일]):
-		return 0, 공용.New에러("가격정보가 충분하지 않습니다. %v", 기준일.Format("2006-01-02"))
+		return 0, 공용.New에러("가격정보가 충분하지 않습니다. %v", 기준일.Format(공용.P일자_형식))
 	}
 
 	합계 := 0.0
@@ -283,7 +282,7 @@ type S포트폴리오 struct {
 	포트폴리오_맵       map[string]*S포트폴리오_구성요소
 	포트폴리오_코드_일자_키 map[string](map[time.Time]공용.S비어있음)
 	포트폴리오_일자_코드_키 map[time.Time](map[string]공용.S비어있음)
-	거래기록_모음       []*S거래기록
+	거래내역_모음       []*S거래내역
 }
 
 func (s S포트폴리오) G구성요소(종목코드 string, 일자 time.Time) *S포트폴리오_구성요소 {
@@ -327,10 +326,10 @@ func (s S포트폴리오) G현황_출력(일자 time.Time) {
 	평가액_누적 := int64(0)
 	for _, 코드 := range 코드_모음 {
 		구성요소 := s.G구성요소(코드, 일자)
-		fmt.Printf("%v  %v  %v\n", 일자.Format("2006-01-02"), 코드, 구성요소.G평가액())
+		fmt.Printf("%v  %v  %v\n", 일자.Format(공용.P일자_형식), 코드, 구성요소.G평가액())
 		평가액_누적 += 구성요소.G평가액()
 	}
-	fmt.Printf("%v 총 평가액 %v\n", 일자.Format("2006-01-02"), 평가액_누적)
+	fmt.Printf("%v 총 평가액 %v\n", 일자.Format(공용.P일자_형식), 평가액_누적)
 }
 
 func (s S포트폴리오) G종목별_일자_모음(종목코드 string) []time.Time {
@@ -380,19 +379,34 @@ func (s S포트폴리오) G일자별_평가액(일자 time.Time) int64 {
 	return 합계
 }
 
-func (s S포트폴리오) G종목별_미결_거래기록_모음(종목코드 string) []*S거래기록 {
-	거래기록_모음 := make([]*S거래기록, 0)
+func (s S포트폴리오) G전종목_거래내역_모음() []*S거래내역 {
+	return 공용.F슬라이스_복사(s.거래내역_모음, make([]*S거래내역,0)).([]*S거래내역)
+}
 
-	for _, 거래기록 := range s.거래기록_모음 {
-		if 거래기록.G거래완료() ||
-			거래기록.G종목코드() != 종목코드 {
+func (s S포트폴리오) G종목별_거래내역_모음(종목코드 string) []*S거래내역 {
+	거래내역_모음 := make([]*S거래내역, 0)
+	for _, 거래내역 := range s.거래내역_모음 {
+		if 거래내역.G종목코드() == 종목코드 {
+			거래내역_모음 = append(거래내역_모음, 거래내역)
+		}
+	}
+
+	return 거래내역_모음
+}
+
+func (s S포트폴리오) G종목별_미결_거래내역_모음(종목코드 string) []*S거래내역 {
+	거래내역_모음 := make([]*S거래내역, 0)
+
+	for _, 거래내역 := range s.거래내역_모음 {
+		if 거래내역.G거래완료() ||
+			거래내역.G종목코드() != 종목코드 {
 			continue
 		}
 
-		거래기록_모음 = append(거래기록_모음, 거래기록)
+		거래내역_모음 = append(거래내역_모음, 거래내역)
 	}
 
-	return 거래기록_모음
+	return 거래내역_모음
 }
 
 func (s *S포트폴리오) S전일_복제(기준일 time.Time, 가격정보_저장소 *S일일가격정보_저장소) (에러 error) {
@@ -487,8 +501,8 @@ func (s *S포트폴리오) S매입(종목코드 string, 일자 time.Time, 수량
 	현금.s매도(1, 수량*단가)
 	s.S추가(현금)
 
-	거래기록 := New거래기록(종목코드, 수량, 일자, 단가, 손절매_단가)
-	s.거래기록_모음 = append(s.거래기록_모음, 거래기록)
+	거래내역 := New거래내역(종목코드, 수량, 일자, 단가, 손절매_단가)
+	s.거래내역_모음 = append(s.거래내역_모음, 거래내역)
 }
 
 func (s *S포트폴리오) S매도(종목코드 string, 일자 time.Time, 수량, 단가 int64) {
@@ -521,21 +535,21 @@ func (s *S포트폴리오) S매도(종목코드 string, 일자 time.Time, 수량
 	현금.s매입(1, 수량*단가)
 	s.S추가(현금)
 
-	미결_거래기록_모음 := s.G종목별_미결_거래기록_모음(종목코드)
+	미결_거래내역_모음 := s.G종목별_미결_거래내역_모음(종목코드)
 	누적_매도수량 := int64(0)
 
 반복문:
-	for _, 미결_거래기록 := range 미결_거래기록_모음 {
+	for _, 미결_거래내역 := range 미결_거래내역_모음 {
 		잔여_수량 := 수량 - 누적_매도수량
 		switch {
-		case 미결_거래기록.G수량() > 잔여_수량:
-			공용.F패닉("'S거래기록'은 1회에 전량 매도하는 것을 가정하여 설계되었습니다.")
-		case 미결_거래기록.G수량() == 잔여_수량:
-			미결_거래기록.S매도기록(일자, 단가)
+		case 미결_거래내역.G수량() > 잔여_수량:
+			공용.F패닉("'S거래내역'은 1회에 전량 매도하는 것을 가정하여 설계되었습니다.")
+		case 미결_거래내역.G수량() == 잔여_수량:
+			미결_거래내역.S매도기록(일자, 단가)
 			break 반복문
-		case 미결_거래기록.G수량() < 잔여_수량:
-			미결_거래기록.S매도기록(일자, 단가)
-			누적_매도수량 += 미결_거래기록.G수량()
+		case 미결_거래내역.G수량() < 잔여_수량:
+			미결_거래내역.S매도기록(일자, 단가)
+			누적_매도수량 += 미결_거래내역.G수량()
 			continue
 		default:
 			공용.F패닉("예상하지 못한 경우")
@@ -560,19 +574,19 @@ func (s *S포트폴리오) S종목별_손절매(가격정보_저장소 *S일일�
 		return
 	}
 
-	거래기록_모음 := s.G종목별_미결_거래기록_모음(종목코드)
-	for _, 거래기록 := range 거래기록_모음 {
+	거래내역_모음 := s.G종목별_미결_거래내역_모음(종목코드)
+	for _, 거래내역 := range 거래내역_모음 {
 		switch {
-		case 거래기록.G매입일().After(금일):
+		case 거래내역.G매입일().After(금일):
 			continue
 		case 장_개시_종료 == P장_개시:
-			if 금일_가격정보.G조정시가() > 거래기록.G손절매_단가() {
+			if 금일_가격정보.G조정시가() > 거래내역.G손절매_단가() {
 				continue
 			}
 
 			구성요소.s전량_매도(금일_가격정보.M조정종가)
 		case 장_개시_종료 == P장_종료:
-			if 금일_가격정보.M조정종가 > 거래기록.G손절매_단가() {
+			if 금일_가격정보.M조정종가 > 거래내역.G손절매_단가() {
 				continue
 			}
 
@@ -581,7 +595,7 @@ func (s *S포트폴리오) S종목별_손절매(가격정보_저장소 *S일일�
 				continue
 			}
 
-			s.S전량_매도(거래기록.G종목코드(), 금일, 명일_가격정보.G조정시가())
+			s.S전량_매도(거래내역.G종목코드(), 금일, 명일_가격정보.G조정시가())
 		default:
 			공용.F패닉("예상하지 못한 경우.")
 		}
@@ -602,7 +616,7 @@ func New포트폴리오() *S포트폴리오 {
 	s.포트폴리오_맵 = make(map[string]*S포트폴리오_구성요소)
 	s.포트폴리오_코드_일자_키 = make(map[string](map[time.Time]공용.S비어있음))
 	s.포트폴리오_일자_코드_키 = make(map[time.Time](map[string]공용.S비어있음))
-	s.거래기록_모음 = make([]*S거래기록, 0)
+	s.거래내역_모음 = make([]*S거래내역, 0)
 
 	return s
 }
@@ -671,7 +685,7 @@ func (s S포트폴리오_구성요소) String() string {
 	버퍼.WriteString(" : ")
 	버퍼.WriteString(s.종목코드)
 	버퍼.WriteString(", ")
-	버퍼.WriteString(s.일자.Format("2006-01-02"))
+	버퍼.WriteString(s.일자.Format(공용.P일자_형식))
 	버퍼.WriteString(", ")
 	버퍼.WriteString(strconv.FormatInt(s.수량, 10))
 	버퍼.WriteString(", ")
@@ -703,7 +717,7 @@ func New현금(일자 time.Time, 금액 int64) *S포트폴리오_구성요소 {
 }
 
 // 문제를 단순화 하기 위해서 1회 매입한 수량은 1회에 모두 매도하는 경우로 한정.
-type S거래기록 struct {
+type S거래내역 struct {
 	종목코드   string
 	수량     int64
 	매입일    time.Time
@@ -713,18 +727,18 @@ type S거래기록 struct {
 	손절매_단가 int64 // 매입 시에만 설정.
 }
 
-func (s S거래기록) G종목코드() string   { return s.종목코드 }
-func (s S거래기록) G수량() int64      { return s.수량 }
-func (s S거래기록) G매입일() time.Time { return s.매입일 }
-func (s S거래기록) G매입_단가() int64   { return s.매입_단가 }
-func (s S거래기록) G매도일() time.Time { return s.매도일 }
-func (s S거래기록) G매도_단가() int64   { return s.매도_단가 }
-func (s S거래기록) G손절매_단가() int64  { return s.손절매_단가 }
-func (s S거래기록) G거래완료() bool     { return !s.매도일.Equal(time.Time{}) || s.매도_단가 != 0 }
-func (s *S거래기록) S매도기록(매도일 time.Time, 매도_단가 int64) {
+func (s S거래내역) G종목코드() string   { return s.종목코드 }
+func (s S거래내역) G수량() int64      { return s.수량 }
+func (s S거래내역) G매입일() time.Time { return s.매입일 }
+func (s S거래내역) G매입_단가() int64   { return s.매입_단가 }
+func (s S거래내역) G매도일() time.Time { return s.매도일 }
+func (s S거래내역) G매도_단가() int64   { return s.매도_단가 }
+func (s S거래내역) G손절매_단가() int64  { return s.손절매_단가 }
+func (s S거래내역) G거래완료() bool     { return !s.매도일.Equal(time.Time{}) || s.매도_단가 != 0 }
+func (s *S거래내역) S매도기록(매도일 time.Time, 매도_단가 int64) {
 	switch {
 	case 매도일.Before(s.매입일):
-		공용.F패닉("잘못된 일자. %v %v", s.매입일.Format("2006-01-02"), s.매도일.Format("2006-01-02"))
+		공용.F패닉("잘못된 일자. %v %v", s.매입일.Format(공용.P일자_형식), s.매도일.Format(공용.P일자_형식))
 	case 매도_단가 <= 0:
 		공용.F패닉("잘못된 매도 단가. %v", s.매도_단가)
 	}
@@ -733,9 +747,9 @@ func (s *S거래기록) S매도기록(매도일 time.Time, 매도_단가 int64) 
 	s.매도_단가 = 매도_단가
 }
 
-func New거래기록(종목코드 string, 수량 int64, 매입일 time.Time,
-	매입_단가, 손절매_단가 int64) *S거래기록 {
-	s := new(S거래기록)
+func New거래내역(종목코드 string, 수량 int64, 매입일 time.Time,
+	매입_단가, 손절매_단가 int64) *S거래내역 {
+	s := new(S거래내역)
 	s.종목코드 = 종목코드
 	s.수량 = 수량
 	s.매입일 = 매입일
@@ -743,4 +757,8 @@ func New거래기록(종목코드 string, 수량 int64, 매입일 time.Time,
 	s.손절매_단가 = 손절매_단가
 
 	return s
+}
+
+func F정수64_비율(정수값 int64, 비율 float64) int64 {
+	return int64(float64(정수값) * 비율)
 }
