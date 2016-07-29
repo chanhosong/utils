@@ -56,8 +56,29 @@ type S일일가격정보_저장소 struct {
 	키_일자_코드 map[time.Time]([]string)
 }
 
-func (s S일일가격정보_저장소) g일자(금일 time.Time, 일자_차이 int) (time.Time, error) {
-	일자_모음 := s.G일자_모음()
+func (s S일일가격정보_저장소) G종목별_일자_모음(종목코드 string) []time.Time {
+	일자_모음, ok := s.키_코드_일자[종목코드]
+	if !ok {
+		일자_모음 = make([]time.Time, 0)
+	}
+
+	return 공용.F슬라이스_복사(공용.F정렬_시각(일자_모음), make([]time.Time, 0)).([]time.Time)
+}
+
+func (s S일일가격정보_저장소) G종목별_일자_존재(종목코드 string, 일자 time.Time) bool {
+	일자_모음 := s.G종목별_일자_모음(종목코드)
+	for _, 현존_일자 := range 일자_모음 {
+		switch {
+		case 현존_일자.Equal(일자):
+			return true
+		case 현존_일자.After(일자):
+			return false
+		}
+	}
+	return false
+}
+
+func (s S일일가격정보_저장소) g일자_도우미(일자_모음 []time.Time, 금일 time.Time, 일자_차이 int) (time.Time, error) {
 	금일_인덱스 := 0
 	for i, 일자 := range 일자_모음 {
 		if 일자.Equal(금일) {
@@ -79,40 +100,70 @@ func (s S일일가격정보_저장소) g일자(금일 time.Time, 일자_차이 i
 	return time.Time{}, 공용.New에러("금일을 찾을 수 없음. %v", 금일.Format("2006-01-02"))
 }
 
-func (s S일일가격정보_저장소) G전일(금일 time.Time) (time.Time, error) {
-	return s.G과거_일자(금일, 1)
+func (s S일일가격정보_저장소) g종목별_일자(종목코드 string, 기준일 time.Time, 일자_차이 int) (time.Time, error) {
+	return s.g일자_도우미(s.G종목별_일자_모음(종목코드), 기준일, 일자_차이)
 }
 
-func (s S일일가격정보_저장소) G과거_일자(금일 time.Time, 일자_차이 int) (time.Time, error) {
+func (s S일일가격정보_저장소) G종목별_전일(종목코드 string, 기준일 time.Time) (time.Time, error) {
+	return s.G종목별_과거_일자(종목코드, 기준일, 1)
+}
+
+func (s S일일가격정보_저장소) G종목별_과거_일자(종목코드 string, 기준일 time.Time, 일자_차이 int) (time.Time, error) {
 	일자_차이 = int(math.Abs(float64(일자_차이)))
-	return s.g일자(금일, 일자_차이*-1)
+	return s.g종목별_일자(종목코드, 기준일, 일자_차이*-1)
 }
 
-func (s S일일가격정보_저장소) G명일(금일 time.Time) (time.Time, error) {
-	return s.G미래_일자(금일, 1)
+func (s S일일가격정보_저장소) G종목별_명일(종목코드 string, 기준일 time.Time) (time.Time, error) {
+	return s.G종목별_미래_일자(종목코드, 기준일, 1)
 }
 
-func (s S일일가격정보_저장소) G미래_일자(금일 time.Time, 일자_차이 int) (time.Time, error) {
+func (s S일일가격정보_저장소) G종목별_미래_일자(종목코드 string, 기준일 time.Time, 일자_차이 int) (time.Time, error) {
 	일자_차이 = int(math.Abs(float64(일자_차이)))
-	return s.g일자(금일, 일자_차이)
+	return s.g종목별_일자(종목코드, 기준일, 일자_차이)
 }
 
-func (s S일일가격정보_저장소) G종목별_일자_모음(종목코드 string) []time.Time {
-	일자_모음, ok := s.키_코드_일자[종목코드]
-	if !ok {
-		일자_모음 = make([]time.Time, 0)
-	}
-
-	return 공용.F슬라이스_복사(공용.F정렬_시각(일자_모음), make([]time.Time, 0)).([]time.Time)
-}
-
-func (s S일일가격정보_저장소) G일자_모음() []time.Time {
+func (s S일일가격정보_저장소) G전종목_일자_모음() []time.Time {
 	일자_모음 := make([]time.Time, 0)
 	for 일자, _ := range s.키_일자_코드 {
 		일자_모음 = append(일자_모음, 일자)
 	}
 
 	return 공용.F정렬_시각(일자_모음)
+}
+
+func (s S일일가격정보_저장소) G전종목_일자_존재(일자 time.Time) bool {
+	일자_모음 := s.G전종목_일자_모음()
+	for _, 현존_일자 := range 일자_모음 {
+		switch {
+		case 현존_일자.Equal(일자):
+			return true
+		case 현존_일자.After(일자):
+			return false
+		}
+	}
+	return false
+}
+
+func (s S일일가격정보_저장소) g전종목_일자(기준일 time.Time, 일자_차이 int) (time.Time, error) {
+	return s.g일자_도우미(s.G전종목_일자_모음(), 기준일, 일자_차이)
+}
+
+func (s S일일가격정보_저장소) G전종목_전일(금일 time.Time) (time.Time, error) {
+	return s.G전종목_과거_일자(금일, 1)
+}
+
+func (s S일일가격정보_저장소) G전종목_과거_일자(금일 time.Time, 일자_차이 int) (time.Time, error) {
+	일자_차이 = int(math.Abs(float64(일자_차이)))
+	return s.g전종목_일자(금일, 일자_차이*-1)
+}
+
+func (s S일일가격정보_저장소) G전종목_명일(금일 time.Time) (time.Time, error) {
+	return s.G전종목_미래_일자(금일, 1)
+}
+
+func (s S일일가격정보_저장소) G전종목_미래_일자(금일 time.Time, 일자_차이 int) (time.Time, error) {
+	일자_차이 = int(math.Abs(float64(일자_차이)))
+	return s.g전종목_일자(금일, 일자_차이)
 }
 
 func (s S일일가격정보_저장소) G일일_가격정보(종목코드 string, 일자 time.Time) *공용.S일일_가격정보 {
@@ -128,7 +179,7 @@ func (s S일일가격정보_저장소) G전일_가격정보(종목코드 string,
 	전일 := 금일
 
 	for {
-		전일, 에러 := s.G전일(전일)
+		전일, 에러 := s.G전종목_전일(전일)
 		if 에러 != nil {
 			return nil
 		}
@@ -145,7 +196,7 @@ func (s S일일가격정보_저장소) G명일_가격정보(종목코드 string,
 	명일 := 금일
 
 	for {
-		명일, 에러 := s.G명일(명일)
+		명일, 에러 := s.G전종목_명일(명일)
 		if 에러 != nil {
 			return nil
 		}
@@ -160,12 +211,12 @@ func (s S일일가격정보_저장소) G명일_가격정보(종목코드 string,
 
 func (s S일일가격정보_저장소) G단순이동평균(종목코드 string, 기준일 time.Time,
 	기간by일 int, 가격종류 uint8) (float64, error) {
-	가격정보_일자_모음 := s.G일자_모음()
+	가격정보_일자_모음 := s.G전종목_일자_모음()
 	switch {
 	case 기간by일 <= 0:
 		return 0, 공용.New에러("잘못된 기간입니다. %v", 기간by일)
 	case len(가격정보_일자_모음) < 기간by일,
-		기준일.Before(s.G일자_모음()[기간by일]):
+		기준일.Before(s.G전종목_일자_모음()[기간by일]):
 		return 0, 공용.New에러("가격정보가 충분하지 않습니다. %v", 기준일.Format("2006-01-02"))
 	}
 
@@ -344,16 +395,22 @@ func (s S포트폴리오) G종목별_미결_거래기록_모음(종목코드 str
 	return 거래기록_모음
 }
 
-func (s *S포트폴리오) S전일_복제(기준일 time.Time, 가격정보_저장소 *S일일가격정보_저장소) {
-	전일, 에러 := 가격정보_저장소.G전일(기준일)
-	if 에러 != nil {
-		return
-	}
+func (s *S포트폴리오) S전일_복제(기준일 time.Time, 가격정보_저장소 *S일일가격정보_저장소) (에러 error) {
+	defer func() {
+		if r := recover(); r != nil {
+			switch r.(type) {
+			case error:
+				에러 = r.(error)
+			default:
+				에러 = 공용.New에러("%", r)
+			}
+		}
+	}()
 
+	공용.F조건부_패닉(!가격정보_저장소.G전종목_일자_존재(기준일), "존재하지 않는 일자. %v", 기준일.Format(공용.P일자_형식))
+	전일, 에러 := 가격정보_저장소.G전종목_전일(기준일)
 	코드_모음 := s.G일자별_코드_모음(전일)
-	if 코드_모음 == nil {
-		공용.F패닉("예상하지 못한 경우")
-	}
+	공용.F조건부_패닉(코드_모음 == nil, "예상하지 못한 경우")
 
 	for _, 종목코드 := range 코드_모음 {
 		전일_조정종가 := int64(0)
@@ -376,6 +433,8 @@ func (s *S포트폴리오) S전일_복제(기준일 time.Time, 가격정보_저�
 
 		s.S추가(금일_구성요소)
 	}
+
+	return nil
 }
 
 func (s *S포트폴리오) S추가(구성요소 *S포트폴리오_구성요소) {
