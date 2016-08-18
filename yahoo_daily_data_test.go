@@ -33,6 +33,7 @@ along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
 package ghts_utils
 
+/*
 import (
 	공용 "github.com/ghts/ghts_common"
 
@@ -60,3 +61,4 @@ func TestF전종목_일일가격정보_확보_야후(t *testing.T) {
 	공용.F테스트_다름(t, len(일일_가격정보_맵), 0)
 	공용.F테스트_다름(t, len(에러내역_맵), 0)
 }
+*/
