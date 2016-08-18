@@ -43,8 +43,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 	"sync"
+	"time"
 )
 
 // 테스트할 때는 도우미를 MOCK-UP(모의 데이터)으로 교체함.
@@ -52,6 +52,7 @@ import (
 
 var 종목별_일일가격정보_질의_도우미 = 종목별_일일가격정보_질의_도우미_야후
 var M가격정보_맵_파일_잠금 = new(sync.Mutex)
+
 const P가격정보_맵_파일명 = "yahoo_daily_price.dat"
 
 func F전종목_일일가격정보_확보_야후() (map[string]([]*공용.S일일_가격정보), map[string]*공용.S에러내역) {
@@ -73,7 +74,7 @@ func F전종목_일일가격정보_확보_야후() (map[string]([]*공용.S일�
 
 			종목별_가격정보_모음, 에러내역 := F종목별_일일가격정보_질의(종목)
 			if 에러내역 != nil {
-				에러내역_맵[종목.G코드()] =에러내역
+				에러내역_맵[종목.G코드()] = 에러내역
 				공용.F문자열_출력("%v", 에러내역)
 				종목모음_에러발생 = append(종목모음_에러발생, 종목)
 
@@ -144,7 +145,7 @@ func 종목별_일일가격정보_질의_도우미_야후(종목 *공용.S종목
 
 	switch {
 	case 에러 != nil:
-		return nil, 공용.New에러내역("CSV읽기 에러", 에러.Error() + "\n")
+		return nil, 공용.New에러내역("CSV읽기 에러", 에러.Error()+"\n")
 	case len(레코드_모음) < 1:
 		// 가격데이터가 없거나, CSV로 해석불가능하면 무시
 		return nil, 공용.New에러내역("CSV읽기 에러", "CSV 레코드 수량이 0개")
