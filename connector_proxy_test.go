@@ -33,32 +33,9 @@ along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
 package ghts_utils
 
-/*
-import (
-	공용 "github.com/ghts/ghts_common"
 
-	"testing"
-)
-
-func TestF종목별_일일가격정보_질의(t *testing.T) {
-	종목 := 공용.New종목("069500", "KODEX 200", 공용.P시장구분_ETF)
-	일일_가격정보_모음, 에러내역 := F종목별_일일가격정보_질의(종목)
-
-	if 에러내역 != nil {
-		공용.F문자열_출력(에러내역.String())
-	}
-
-	공용.F테스트_다름(t, 일일_가격정보_모음, nil)
-	공용.F테스트_다름(t, len(일일_가격정보_모음), 0)
-	공용.F테스트_같음(t, 에러내역, nil)
-
-	공용.F파일에_값_저장(일일_가격정보_모음, "KODEX200.dat", nil)
-}
-
-func TestF전종목_일일가격정보_확보_야후(t *testing.T) {
-	일일_가격정보_맵, 에러내역_맵 := F전종목_일일가격정보_확보_야후()
-	공용.F테스트_다름(t, 일일_가격정보_맵, nil)
-	공용.F테스트_다름(t, len(일일_가격정보_맵), 0)
-	공용.F테스트_다름(t, len(에러내역_맵), 0)
-}
-*/
+//import (
+//	공용 "github.com/ghts/ghts_common"
+//
+//	"testing"
+//)
