@@ -1,4 +1,4 @@
-/* Copyright (C) 2015년 김운하(UnHa Kim)  unha.kim@kuh.pe.kr
+/* Copyright (C) 2015-2016 김운하(UnHa Kim)  unha.kim@kuh.pe.kr
 
 이 파일은 GHTS의 일부입니다.
 
@@ -31,39 +31,39 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
-package ghts_utils
+package realtime_data_nh
 
 import (
-	공용 "github.com/ghts/ghts_common"
+	"github.com/ghts/lib"
 
+	"strings"
 	"testing"
 	"time"
-	"strings"
 )
 
 func TestF틱_데이터_파일명(t *testing.T) {
-	종목 := 공용.F임의_종목()
-	공용.F테스트_참임(t, strings.Contains(f틱_데이터_파일명(종목), 종목.G코드()))
-	공용.F테스트_참임(t, strings.Contains(f틱_데이터_파일명(종목), time.Now().Format(공용.P일자_형식)))
+	종목 := lib.F임의_종목()
+	lib.F테스트_참임(t, strings.Contains(f틱_데이터_파일명(종목), 종목.G코드()))
+	lib.F테스트_참임(t, strings.Contains(f틱_데이터_파일명(종목), time.Now().Format(lib.P일자_형식)))
 }
 
 func Test_ETF_틱_데이터_수집_NH(t *testing.T) {
 	const 반복횟수 int = 20
 	초기화_완료 := make(chan bool, 반복횟수)
 
-	for i:=0 ; i<반복횟수 ; i++ {
-		go f_ETF_틱_데이터_수집_NH(공용.F임의_종목_ETF(), 초기화_완료)
+	for i := 0; i < 반복횟수; i++ {
+		go f_ETF_틱_데이터_수집_NH(lib.F임의_종목_ETF(), 초기화_완료)
 	}
 
-	for i:=0 ; i<반복횟수 ; i++ {
-		공용.F테스트_참임(t, <-초기화_완료)
+	for i := 0; i < 반복횟수; i++ {
+		lib.F테스트_참임(t, <-초기화_완료)
 	}
 
-	time.Sleep(공용.P30초)
+	time.Sleep(lib.P30초)
 
-	close(공용.F공통_종료_채널())
+	close(lib.F공통_종료_채널())
 
-	time.Sleep(공용.P3초)
+	time.Sleep(lib.P3초)
 
-	공용.F공통_종료_채널_재설정()
+	lib.F공통_종료_채널_재설정()
 }

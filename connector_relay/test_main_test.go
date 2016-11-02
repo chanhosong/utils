@@ -1,4 +1,4 @@
-/* Copyright (C) 2015년 김운하(UnHa Kim)  unha.kim@kuh.pe.kr
+/* Copyright (C) 2015-2016 김운하(UnHa Kim)  unha.kim@kuh.pe.kr
 
 이 파일은 GHTS의 일부입니다.
 
@@ -31,34 +31,37 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
-package ghts_utils
+package connector_relay
 
-/*
 import (
-	공용 "github.com/ghts/ghts_common"
-
+	"github.com/ghts/lib"
+	"os"
 	"testing"
 )
 
-func TestF종목별_일일가격정보_질의(t *testing.T) {
-	종목 := 공용.New종목("069500", "KODEX 200", 공용.P시장구분_ETF)
-	일일_가격정보_모음, 에러내역 := F종목별_일일가격정보_질의(종목)
+func TestMain(m *testing.M) {
+	lib.F테스트_모드_시작()
+	defer lib.F테스트_모드_종료()
+	defer close(lib.F공통_종료_채널())
 
-	if 에러내역 != nil {
-		공용.F문자열_출력(에러내역.String())
+	// 증권사 API 커넥터 실행
+	const 증권사API_커넥터_실행파일_경로 = ""
+
+	ch실행결과 := make(chan lib.I채널_메시지, 1)
+	lib.F외부_프로세스_실행(ch실행결과, lib.P무기한, 증권사API_커넥터_실행파일_경로)
+
+	실행결과 := <-ch실행결과
+	lib.F에러2패닉(실행결과.G에러())
+
+	var 프로세스ID int
+	if 실행결과.G값(0).(lib.T신호) == lib.P신호_초기화 {
+		프로세스ID = 실행결과.G값(1).(int)
 	}
 
-	공용.F테스트_다름(t, 일일_가격정보_모음, nil)
-	공용.F테스트_다름(t, len(일일_가격정보_모음), 0)
-	공용.F테스트_같음(t, 에러내역, nil)
+	테스트_실행결과 := m.Run()
 
-	공용.F파일에_값_저장(일일_가격정보_모음, "KODEX200.dat", nil)
-}
+	에러 := lib.F프로세스_종료by프로세스ID(프로세스ID)
+	lib.F에러2패닉(에러)
 
-func TestF전종목_일일가격정보_확보_야후(t *testing.T) {
-	일일_가격정보_맵, 에러내역_맵 := F전종목_일일가격정보_확보_야후()
-	공용.F테스트_다름(t, 일일_가격정보_맵, nil)
-	공용.F테스트_다름(t, len(일일_가격정보_맵), 0)
-	공용.F테스트_다름(t, len(에러내역_맵), 0)
+	os.Exit(테스트_실행결과)
 }
-*/

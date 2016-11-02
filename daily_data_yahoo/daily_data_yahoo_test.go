@@ -1,4 +1,4 @@
-/* Copyright (C) 2015년 김운하(UnHa Kim)  unha.kim@kuh.pe.kr
+/* Copyright (C) 2015-2016 김운하(UnHa Kim)  unha.kim@kuh.pe.kr
 
 이 파일은 GHTS의 일부입니다.
 
@@ -31,11 +31,34 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
-package ghts_utils
+package daily_data_yahoo
 
+/*
+import (
+	"github.com/ghts/lib"
 
-//import (
-//	공용 "github.com/ghts/ghts_common"
-//
-//	"testing"
-//)
+	"testing"
+)
+
+func TestF종목별_일일가격정보_질의(t *testing.T) {
+	종목 := lib.New종목("069500", "KODEX 200", lib.P시장구분_ETF)
+	일일_가격정보_모음, 에러내역 := F종목별_일일가격정보_질의(종목)
+
+	if 에러내역 != nil {
+		lib.F문자열_출력(에러내역.String())
+	}
+
+	lib.F테스트_다름(t, 일일_가격정보_모음, nil)
+	lib.F테스트_다름(t, len(일일_가격정보_모음), 0)
+	lib.F테스트_같음(t, 에러내역, nil)
+
+	lib.F파일에_값_저장(일일_가격정보_모음, "KODEX200.dat", nil)
+}
+
+func TestF전종목_일일가격정보_확보_야후(t *testing.T) {
+	일일_가격정보_맵, 에러내역_맵 := F전종목_일일가격정보_확보_야후()
+	lib.F테스트_다름(t, 일일_가격정보_맵, nil)
+	lib.F테스트_다름(t, len(일일_가격정보_맵), 0)
+	lib.F테스트_다름(t, len(에러내역_맵), 0)
+}
+*/

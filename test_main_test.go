@@ -1,4 +1,4 @@
-/* Copyright (C) 2015년 김운하(UnHa Kim)  unha.kim@kuh.pe.kr
+/* Copyright (C) 2015-2016 김운하(UnHa Kim)  unha.kim@kuh.pe.kr
 
 이 파일은 GHTS의 일부입니다.
 
@@ -34,16 +34,16 @@ along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 package ghts_utils
 
 import (
-	공용 "github.com/ghts/ghts_common"
+	"github.com/ghts/lib"
 
 	"os"
 	"testing"
 )
 
 func TestMain(m *testing.M) {
-	공용.F테스트_모드_시작()
-	defer 공용.F테스트_모드_종료()
-	defer close(공용.F공통_종료_채널())
+	lib.F테스트_모드_시작()
+	defer lib.F테스트_모드_종료()
+	defer close(lib.F공통_종료_채널())
 
 	os.Exit(m.Run())
 }
