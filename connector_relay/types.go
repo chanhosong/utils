@@ -39,24 +39,41 @@ import (
 	"sync"
 )
 
+var nh = lib.NH
+
 type s실시간_정보_구독_내역_저장소 struct {
 	sync.Mutex
-	중계_내역_맵 map[mangos.Socket](chan lib.I소켓_메시지)
-	소켓_모음   []mangos.Socket
+	중계_내역_저장소 map[chan lib.I소켓_메시지]mangos.Socket
+	인덱스_소켓    []mangos.Socket
+	인덱스_채널    [](chan lib.I소켓_메시지)
+}
+
+func (s *s실시간_정보_구독_내역_저장소) G소켓(채널 chan lib.I소켓_메시지) mangos.Socket {
+	s.Lock()
+	defer s.Unlock()
+
+	return s.중계_내역_저장소[채널]
 }
 
 func (s *s실시간_정보_구독_내역_저장소) G소켓_모음() []mangos.Socket {
 	s.Lock()
 	defer s.Unlock()
 
-	return s.소켓_모음
+	return s.인덱스_소켓
+}
+
+func (s *s실시간_정보_구독_내역_저장소) G채널_모음() chan lib.I소켓_메시지 {
+	s.Lock()
+	defer s.Unlock()
+
+	return s.인덱스_채널
 }
 
 func (s *s실시간_정보_구독_내역_저장소) G중계_채널(소켓 mangos.Socket) (ch수신 chan lib.I소켓_메시지, 에러 error) {
 	s.Lock()
 	defer s.Unlock()
 
-	ch수신, 존재함 := s.중계_내역_맵[소켓]
+	ch수신, 존재함 := s.중계_내역_저장소[소켓]
 	if !존재함 {
 		return nil, lib.New에러("해당 소켓에 대응되는 수신 채널이 존재하지 않습니다. %v", 소켓)
 	}
@@ -64,69 +81,51 @@ func (s *s실시간_정보_구독_내역_저장소) G중계_채널(소켓 mangos
 	return ch수신, nil
 }
 
-func (s *s실시간_정보_구독_내역_저장소) S추가(소켓 mangos.Socket, ch수신 chan lib.I소켓_메시지) error {
+func (s *s실시간_정보_구독_내역_저장소) S추가(ch수신 chan lib.I소켓_메시지, 소켓 mangos.Socket) (에러 error) {
+	defer lib.F에러_패닉_처리(&에러)
+
+	// SUB소켓인지 확인
+	옵션값, 에러 := 소켓.GetOption(mangos.OptionSubscribe)
+	lib.F에러2패닉(에러)
+	lib.F조건부_패닉(옵션값 == nil, "SUB소켓이 아닌 듯 함. 구독 옵션값이 nil임.")
+
 	s.Lock()
 	defer s.Unlock()
 
-	lib.F메모("소켓의 타입이 SUB인지 확인할 것.")
-	lib.F문자열_출력("%v", 소켓.GetType())
-
-	//타입, 에러 := 소켓.GetType()
-	_, 에러 := 소켓.GetType()
-	if 에러 != nil {
-		return 에러
-	} // else if 타입 != ?? {
-	//	return lib.New에러("예상하지 못한 소켓 타입. %v", 타입)
-	//}
-
-	s.중계_내역_맵[소켓] = ch수신
-	s.s소켓_모음_재설정()
+	s.중계_내역_저장소[소켓] = ch수신
+	s.s인덱스_재설정()
 
 	return nil
 }
 
-func (s *s실시간_정보_구독_내역_저장소) S삭제(소켓 mangos.Socket, ch수신 chan lib.I소켓_메시지) error {
+func (s *s실시간_정보_구독_내역_저장소) S삭제(채널 chan lib.I소켓_메시지) (에러 error) {
+	defer lib.F에러_패닉_처리(&에러)
+
 	s.Lock()
 	defer s.Unlock()
 
-	lib.F메모("소켓의 타입이 SUB인지 확인할 것.")
-	lib.F문자열_출력("%v", 소켓.GetType())
-
-	//타입, 에러 := 소켓.GetType()
-	_, 에러 := 소켓.GetType()
-	if 에러 != nil {
-		return 에러
-	} // else if 타입 != ?? {
-	//	return lib.New에러("예상하지 못한 소켓 타입. %v", 타입)
-	//}
-
-	ch수신_저장소, ok := s.중계_내역_맵[소켓]
-	switch {
-	case !ok:
-		return lib.New에러("삭제할 수신 채널 존재하지 않음. %v", ch수신)
-	case ch수신 != ch수신_저장소:
-		return lib.New에러("삭제할 수신 채널 불일치. %v %v", ch수신, ch수신_저장소)
-	}
-
-	delete(s.중계_내역_맵, 소켓)
-	s.s소켓_모음_재설정()
+	delete(s.중계_내역_저장소, 채널)
+	s.s인덱스_재설정()
 
 	return nil
 }
 
-func (s *s실시간_정보_구독_내역_저장소) s소켓_모음_재설정() {
-	s.소켓_모음 = make([]mangos.Socket, len(s.중계_내역_맵))
+func (s *s실시간_정보_구독_내역_저장소) s인덱스_재설정() {
 	i := 0
-	for 소켓, _ := range s.중계_내역_맵 {
-		s.소켓_모음[i] = 소켓
+	s.인덱스_소켓 = make([]mangos.Socket, len(s.중계_내역_저장소))
+	s.인덱스_채널 = make([]chan lib.I소켓_메시지, len(s.중계_내역_저장소))
+	for 채널, 소켓 := range s.중계_내역_저장소 {
+		s.인덱스_소켓[i] = 소켓
+		s.인덱스_채널[i] = 채널
 		i++
 	}
 }
 
 func new실시간_정보_구독_내역_저장소() *s실시간_정보_구독_내역_저장소 {
 	s := new(s실시간_정보_구독_내역_저장소)
-	s.중계_내역_맵 = make(map[mangos.Socket](chan lib.I소켓_메시지))
-	s.소켓_모음 = make([]mangos.Socket, 0)
+	s.중계_내역_저장소 = make(map[mangos.Socket](chan lib.I소켓_메시지))
+	s.인덱스_소켓 = make([]mangos.Socket, 0)
+	s.인덱스_채널 = make([](chan lib.I소켓_메시지), 0)
 
 	return s
 }

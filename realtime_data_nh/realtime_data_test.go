@@ -52,7 +52,7 @@ func Test_ETF_틱_데이터_수집_NH(t *testing.T) {
 	초기화_완료 := make(chan bool, 반복횟수)
 
 	for i := 0; i < 반복횟수; i++ {
-		go f_ETF_틱_데이터_수집_NH(lib.F임의_종목_ETF(), 초기화_완료)
+		go f틱_데이터_수집_NH_ETF(lib.F임의_종목_ETF(), 초기화_완료)
 	}
 
 	for i := 0; i < 반복횟수; i++ {

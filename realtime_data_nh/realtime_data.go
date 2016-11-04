@@ -34,12 +34,12 @@ along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 package realtime_data_nh
 
 import (
-	NH "github.com/ghts/ghts_connector/nh"
 	"github.com/ghts/lib"
-	//Xing "github.com/ghts/ghts_connector/xing"
+	"github.com/ghts/ghts_utils/connector_relay"
 	//"github.com/boltdb/bolt"
 
 	"time"
+	"github.com/go-mangos/mangos"
 )
 
 type S틱_데이터 struct {
@@ -58,98 +58,76 @@ func f틱_데이터_파일명(종목 *lib.S종목) string {
 	return "tick_" + 종목.G코드() + "_" + time.Now().Format(lib.P일자_형식) + ".dat"
 }
 
-func f_ETF_틱_데이터_수집_NH(종목 *lib.S종목, 초기화_완료 chan bool) {
-	defer func() {
-		if r := recover(); r != nil {
-			switch r.(type) {
-			case error:
-				lib.F에러_출력(r.(error))
-			default:
-				lib.New에러("%v", r)
-			}
-		}
-	}()
+func f틱_데이터_수집_NH_ETF(SUB소켓 mangos.Socket, ch초기화 chan lib.T신호, ch수신 chan lib.I소켓_메시지, 종목코드_모음 []string) {
+	defer lib.F에러_패닉_처리(func(r interface{}) { lib.New에러with출력(r) })
 
 	// NH 루틴 시작
-	if 에러 := NH.F초기화(); 에러 != nil {
-		초기화_완료 <- false
+	if 에러 := nh.F초기화(); 에러 != nil {
+		ch초기화 <- false
 		return
 	}
 
 	lib.F대기(lib.P500밀리초)
 
-	// 소켓 준비
-	TR소켓, 에러 := lib.New소켓REQ(lib.P주소_NH_TR)
-	lib.F에러_패닉(에러)
-	defer TR소켓.Close()
+	에러 := connector_relay.F실시간_정보_구독_NH(SUB소켓, ch수신, nh.TR_ETF_현재가_조회, 종목코드_모음)
+	lib.F에러2패닉(에러)
 
-	구독_소켓_CBOR, 에러 := lib.New소켓SUB(lib.P주소_NH실시간_CBOR)
-	lib.F에러_패닉(에러)
-	defer 구독_소켓_CBOR.Close()
-
-	초기화_완료 <- true
-
-	// 기본 데이터 질의
-	질의값 := NH.New조회_질의(NH.TR_ETF_현재가_조회, 종목)
-	에러 = lib.F송신zmq(TR소켓, lib.P30초, lib.CBOR, lib.TR일반, 질의값)
-	lib.F에러_패닉(에러)
-
-	// 기본 데이터 수신
-	응답 := lib.F수신zmq(TR소켓, lib.P30초)
-	lib.F에러_패닉(응답.G에러())
-	lib.F조건부_패닉(응답.G길이() != 1, "기본 데이터 응답 길이가 예상과 다릅니다. 예상 1, 실제  %v", 응답.G길이())
-
-	조회값 := NH.NewNH_ETF_현재가_조회_응답()
-	lib.F에러_패닉(응답.G값(0, 조회값))
-	lib.F조건부_패닉(조회값.M기본_정보.M종목코드 != 종목.G코드(),
-		"종목코드 불일치. %v %v", 조회값.M기본_정보.M종목코드 != 종목.G코드())
-
-	초기_데이터 := new(S틱_데이터)
-	초기_데이터.M종목코드 = 종목.G코드()
-	초기_데이터.M시각 = 조회값.M기본_정보.M시각
-	초기_데이터.M매수_호가_모음 = 조회값.M기본_정보.M매수_호가_모음
-	초기_데이터.M매수_잔량_모음 = 조회값.M기본_정보.M매수_잔량_모음
-	초기_데이터.M매도_호가_모음 = 조회값.M기본_정보.M매도_호가_모음
-	초기_데이터.M매도_잔량_모음 = 조회값.M기본_정보.M매도_잔량_모음
-	초기_데이터.M현재가 = 조회값.M기본_정보.M현재가
-	초기_데이터.NAV = 조회값.ETF_정보.NAV
-	초기_데이터.M거래량 = 조회값.M기본_정보.M거래량
-
-	// 실시간 정보 질의 TR 송신
-	질의값 = NH.New조회_질의(NH.RT코스피_체결, 종목)
-	에러 = lib.F송신zmq(TR소켓, lib.P30초, lib.CBOR, lib.TR일반, 질의값)
-	lib.F에러_패닉(에러)
-
-	질의값 = NH.New조회_질의(NH.RT코스피_호가_잔량, 종목)
-	에러 = lib.F송신zmq(TR소켓, lib.P30초, lib.CBOR, lib.TR일반, 질의값)
-	lib.F에러_패닉(에러)
-
-	질의값 = NH.New조회_질의(NH.RT코스피_ETF_NAV, 종목)
-	에러 = lib.F송신zmq(TR소켓, lib.P30초, lib.CBOR, lib.TR일반, 질의값)
-	lib.F에러_패닉(에러)
-
-	// 실시간 데이터 수신
-	for {
-		if lib.F공통_종료() {
-			return
-		}
-
-		응답 = lib.F수신zmq(구독_소켓_CBOR, lib.P1초)
-		if 응답.G에러() != nil {
-			lib.F메모(응답.G에러().Error())
-			continue
-		}
-
-		// TODO
-		for i := 0; i < 응답.G길이(); i++ {
-			lib.F메모(응답.G자료형_문자열(i))
-			//switch 응답.G자료형_문자열() {
-			//default:
-			//	lib.F메모(응답.G자료형_문자열())
-			//}
-		}
-	}
-
-	// 데이터 저장 (bolt)
-	// TODO
+	//// 기본 데이터 수신
+	//응답 := lib.F수신zmq(TR소켓, lib.P30초)
+	//lib.F에러_패닉(응답.G에러())
+	//lib.F조건부_패닉(응답.G길이() != 1, "기본 데이터 응답 길이가 예상과 다릅니다. 예상 1, 실제  %v", 응답.G길이())
+	//
+	//조회값 := NH.NewNH_ETF_현재가_조회_응답()
+	//lib.F에러_패닉(응답.G값(0, 조회값))
+	//lib.F조건부_패닉(조회값.M기본_정보.M종목코드 != 종목.G코드(),
+	//	"종목코드 불일치. %v %v", 조회값.M기본_정보.M종목코드 != 종목.G코드())
+	//
+	//초기_데이터 := new(S틱_데이터)
+	//초기_데이터.M종목코드 = 종목.G코드()
+	//초기_데이터.M시각 = 조회값.M기본_정보.M시각
+	//초기_데이터.M매수_호가_모음 = 조회값.M기본_정보.M매수_호가_모음
+	//초기_데이터.M매수_잔량_모음 = 조회값.M기본_정보.M매수_잔량_모음
+	//초기_데이터.M매도_호가_모음 = 조회값.M기본_정보.M매도_호가_모음
+	//초기_데이터.M매도_잔량_모음 = 조회값.M기본_정보.M매도_잔량_모음
+	//초기_데이터.M현재가 = 조회값.M기본_정보.M현재가
+	//초기_데이터.NAV = 조회값.ETF_정보.NAV
+	//초기_데이터.M거래량 = 조회값.M기본_정보.M거래량
+	//
+	//// 실시간 정보 질의 TR 송신
+	//질의값 = NH.New조회_질의(NH.RT코스피_체결, 종목)
+	//에러 = lib.F송신zmq(TR소켓, lib.P30초, lib.CBOR, lib.TR일반, 질의값)
+	//lib.F에러_패닉(에러)
+	//
+	//질의값 = NH.New조회_질의(NH.RT코스피_호가_잔량, 종목)
+	//에러 = lib.F송신zmq(TR소켓, lib.P30초, lib.CBOR, lib.TR일반, 질의값)
+	//lib.F에러_패닉(에러)
+	//
+	//질의값 = NH.New조회_질의(NH.RT코스피_ETF_NAV, 종목)
+	//에러 = lib.F송신zmq(TR소켓, lib.P30초, lib.CBOR, lib.TR일반, 질의값)
+	//lib.F에러_패닉(에러)
+	//
+	//// 실시간 데이터 수신
+	//for {
+	//	if lib.F공통_종료() {
+	//		return
+	//	}
+	//
+	//	응답 = lib.F수신zmq(구독_소켓_CBOR, lib.P1초)
+	//	if 응답.G에러() != nil {
+	//		lib.F메모(응답.G에러().Error())
+	//		continue
+	//	}
+	//
+	//	// TODO
+	//	for i := 0; i < 응답.G길이(); i++ {
+	//		lib.F메모(응답.G자료형_문자열(i))
+	//		//switch 응답.G자료형_문자열() {
+	//		//default:
+	//		//	lib.F메모(응답.G자료형_문자열())
+	//		//}
+	//	}
+	//}
+	//
+	//// 데이터 저장 (bolt)
+	//// TODO
 }
