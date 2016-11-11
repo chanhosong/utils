@@ -482,16 +482,7 @@ func (s S포트폴리오) G종목별_미결_거래내역_모음(종목코드 str
 }
 
 func (s *S포트폴리오) S전일_복제(기준일 time.Time, 가격정보_저장소 *S일일가격정보_저장소) (에러 error) {
-	defer func() {
-		if r := recover(); r != nil {
-			switch r.(type) {
-			case error:
-				에러 = r.(error)
-			default:
-				에러 = lib.New에러("%", r)
-			}
-		}
-	}()
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M에러: &에러})
 
 	lib.F조건부_패닉(!가격정보_저장소.G전종목_일자_존재(기준일), "존재하지 않는 일자. %v", 기준일.Format(lib.P일자_형식))
 	전일, 에러 := 가격정보_저장소.G전종목_전일(기준일)

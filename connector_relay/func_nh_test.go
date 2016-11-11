@@ -41,7 +41,10 @@ import (
 func TestF질의TR_NH(t *testing.T) {
 	F증권사_연결_모듈_실행()
 
-	응답_메시지 := F질의_NH(nh.TR_ETF_현재가_조회(), lib.F임의_종목_ETF())
+	TR구분 := lib.TR일반
+	질의값 := lib.NewNH조회_질의값(lib.NH_TR_ETF_현재가_조회, lib.F임의_종목_ETF().G코드())
+
+	응답_메시지 := F질의_NH(TR구분, 질의값)
 	lib.F테스트_다름(t, 응답_메시지, nil)
 	lib.F테스트_에러없음(t, 응답_메시지.G에러())
 	lib.F테스트_같음(t, 응답_메시지.G길이(), 1)
@@ -63,8 +66,8 @@ func TestTR실시간_서비스_등록_및_해지(t *testing.T) {
 	lib.F테스트_에러없음(t, 에러)
 
 	종목코드_모음 := make([]string, 0)
-	for _, 종목코드 := range 종목모음_코스피 {
-		종목코드_모음 = append(종목코드_모음, 종목코드)
+	for _, 종목 := range 종목모음_코스피 {
+		종목코드_모음 = append(종목코드_모음, 종목.G코드())
 		if len(종목코드_모음) > 20 {
 			break
 		}
@@ -72,7 +75,7 @@ func TestTR실시간_서비스_등록_및_해지(t *testing.T) {
 
 	// 실시간 정보 구독
 	ch수신 := make(chan lib.I소켓_메시지, 10)
-	에러 = F실시간_정보_구독_NH(ch수신, nh.RT코스피_체결(), 종목코드_모음)
+	에러 = F실시간_정보_구독_NH(ch수신, lib.NH_RT코스피_체결, 종목코드_모음)
 	lib.F테스트_에러없음(t, 에러)
 
 	// 실시간 정보 수신 확인
@@ -82,6 +85,6 @@ func TestTR실시간_서비스_등록_및_해지(t *testing.T) {
 	}
 
 	// 실시간 정보 해지
-	에러 = F실시간_정보_해지_NH(ch수신, nh.RT코스피_체결(), 종목코드_모음)
+	에러 = F실시간_정보_해지_NH(ch수신, lib.NH_RT코스피_체결, 종목코드_모음)
 	lib.F테스트_에러없음(t, 에러)
 }

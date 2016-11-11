@@ -36,7 +36,6 @@ package connector_relay
 import (
 	"github.com/ghts/lib"
 	"github.com/go-mangos/mangos"
-	"time"
 )
 
 var 실시간_정보_중계_NH = lib.New안전한_bool(false)
@@ -45,26 +44,27 @@ var 대기_중_데이터_저장소_NH = new대기_중_데이터_저장소()
 
 // 접속 되었는 지 확인.
 func F접속됨_NH() (참거짓 bool) {
-	defer lib.F에러_패닉_처리(func() { 참거짓 = false })
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M함수: func() { 참거짓 = false }})
 
 	응답 := F질의_NH(lib.TR접속됨)
 	lib.F에러2패닉(응답.G에러())
-
-	var 참거짓 bool
 	lib.F에러2패닉(응답.G값(0, &참거짓))
 
 	return 참거짓
 }
 
 func F질의_NH(TR구분 lib.TR구분, 질의값_모음 ...interface{}) (응답 lib.I소켓_메시지) {
-	defer lib.F에러_패닉_처리(func(r interface{}) { 응답 = lib.New소켓_메시지_에러(r) })
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M함수with패닉내역:
+		func(r interface{}) { 응답 = lib.New소켓_메시지_에러(r) }})
 
 	소켓_질의 := lib.New소켓_질의(lib.P주소_NH_TR, lib.CBOR, lib.P30초)
-	return 소켓_질의.S질의(TR구분, 질의값_모음...).G응답()
+	질의값_모음 = append([]interface{}{TR구분}, 질의값_모음...)
+
+	return 소켓_질의.S질의(질의값_모음...).G응답()
 }
 
 func F실시간_정보_구독_NH(ch수신 chan lib.I소켓_메시지, RT코드 string, 종목코드_모음 []string) (에러 error) {
-	defer lib.F에러_패닉_처리(&에러)
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M에러: &에러})
 
 	F실시간_정보_중계_NH()
 
@@ -81,13 +81,13 @@ func F실시간_정보_구독_NH(ch수신 chan lib.I소켓_메시지, RT코드 s
 	lib.F에러2패닉(에러)
 
 	// 음수 타임아웃값은 non-blocking을 의미
-	구독_소켓.SetOption(mangos.OptionRecvDeadline, -1*time.Second)
+	구독_소켓.SetOption(mangos.OptionRecvDeadline, lib.P마이너스1초)
 
 	return 구독내역_저장소_NH.S추가(ch수신, 구독_소켓)
 }
 
 func F실시간_정보_해지_NH(ch수신 chan lib.I소켓_메시지, RT코드 string, 종목코드_모음 []string) (에러 error) {
-	defer lib.F에러_패닉_처리(&에러)
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M에러: &에러})
 
 	질의값 := lib.NewNH실시간_정보_질의값(RT코드, 종목코드_모음)
 	응답 := F질의_NH(lib.TR실시간_정보_해지, 질의값)

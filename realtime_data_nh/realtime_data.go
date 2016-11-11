@@ -59,7 +59,7 @@ func f틱_데이터_파일명(종목 *lib.S종목) string {
 }
 
 func f틱_데이터_수집_NH_ETF(SUB소켓 mangos.Socket, ch초기화 chan lib.T신호, ch수신 chan lib.I소켓_메시지, 종목코드_모음 []string) {
-	defer lib.F에러_패닉_처리(func(r interface{}) { lib.New에러with출력(r) })
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M함수with패닉내역: func(r interface{}) { lib.New에러with출력(r) }})
 
 	// NH 루틴 시작
 	if 에러 := nh.F초기화(); 에러 != nil {
