@@ -42,6 +42,15 @@ var 실시간_정보_중계_NH = lib.New안전한_bool(false)
 var 구독내역_저장소_NH = new실시간_정보_구독_내역_저장소()
 var 대기_중_데이터_저장소_NH = new대기_중_데이터_저장소()
 
+// 초기화
+func F초기화() error {
+	// TODO
+	// NH API 모듈 실행화일 실행
+	lib.F메모("F초기화()")
+
+	return nil
+}
+
 // 접속 되었는 지 확인.
 func F접속됨_NH() (참거짓 bool) {
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M함수: func() { 참거짓 = false }})
@@ -54,8 +63,7 @@ func F접속됨_NH() (참거짓 bool) {
 }
 
 func F질의_NH(TR구분 lib.TR구분, 질의값_모음 ...interface{}) (응답 lib.I소켓_메시지) {
-	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M함수with패닉내역:
-		func(r interface{}) { 응답 = lib.New소켓_메시지_에러(r) }})
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M함수with패닉내역: func(r interface{}) { 응답 = lib.New소켓_메시지_에러(r) }})
 
 	소켓_질의 := lib.New소켓_질의(lib.P주소_NH_TR, lib.CBOR, lib.P30초)
 	질의값_모음 = append([]interface{}{TR구분}, 질의값_모음...)

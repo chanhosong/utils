@@ -33,13 +33,13 @@ along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
 package realtime_data_nh
 
-import (
-	"github.com/ghts/lib"
-	"github.com/ghts/ghts_utils/connector_relay"
-	//"github.com/boltdb/bolt"
 
-	"time"
+import (
+	"github.com/ghts/ghts_utils/connector_relay"
+	"github.com/ghts/lib"
+	//"github.com/boltdb/bolt"
 	"github.com/go-mangos/mangos"
+	"time"
 )
 
 type S틱_데이터 struct {
@@ -62,14 +62,14 @@ func f틱_데이터_수집_NH_ETF(SUB소켓 mangos.Socket, ch초기화 chan lib.
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M함수with패닉내역: func(r interface{}) { lib.New에러with출력(r) }})
 
 	// NH 루틴 시작
-	if 에러 := nh.F초기화(); 에러 != nil {
-		ch초기화 <- false
+	if 에러 := connector_relay.F초기화(); 에러 != nil {
+		ch초기화 <- lib.P신호_초기화
 		return
 	}
 
 	lib.F대기(lib.P500밀리초)
 
-	에러 := connector_relay.F실시간_정보_구독_NH(SUB소켓, ch수신, nh.TR_ETF_현재가_조회, 종목코드_모음)
+	에러 := connector_relay.F실시간_정보_구독_NH(ch수신, lib.NH_TR_ETF_현재가_조회, 종목코드_모음)
 	lib.F에러2패닉(에러)
 
 	//// 기본 데이터 수신

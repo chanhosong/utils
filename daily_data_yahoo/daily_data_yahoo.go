@@ -59,7 +59,7 @@ func F전종목_일일가격정보_확보_야후() (map[string]([]*lib.S일일_�
 	가격정보_맵 := make(map[string]([]*lib.S일일_가격정보))
 	에러내역_맵 := make(map[string]*lib.S에러내역)
 	종목모음_질의대상, 에러 := lib.F종목모음_전체()
-	lib.F에러_패닉(에러)
+	lib.F에러2패닉(에러)
 
 	종목모음_에러발생 := make([]*lib.S종목, 0)
 
@@ -210,11 +210,10 @@ func 야후_연월일_문자열(일자 time.Time) (연도 string, 월 string, �
 
 func 종목별_일일가격정보_모음_생성_도우미(종목 *lib.S종목, 레코드_모음 [][]string) (
 	종목별_가격정보_모음 []*lib.S일일_가격정보, 에러내역 *lib.S에러내역) {
-	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M함수with패닉내역:
-		func(r interface{}) {
-			종목별_가격정보_모음 = nil
-			에러내역 = lib.New에러내역("일일가격정보 생성 에러", lib.New에러(r).Error())
-		}})
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M함수with패닉내역: func(r interface{}) {
+		종목별_가격정보_모음 = nil
+		에러내역 = lib.New에러내역("일일가격정보 생성 에러", lib.New에러(r).Error())
+	}})
 
 	종목별_가격정보_모음 = make([]*lib.S일일_가격정보, 0)
 	const 날짜형식 = "2006-01-02"

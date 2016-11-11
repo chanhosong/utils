@@ -33,9 +33,9 @@ along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
 package realtime_data_nh
 
+/*
 import (
 	"github.com/ghts/lib"
-
 	"strings"
 	"testing"
 	"time"
@@ -67,3 +67,4 @@ func Test_ETF_틱_데이터_수집_NH(t *testing.T) {
 
 	lib.F공통_종료_채널_재설정()
 }
+*/
