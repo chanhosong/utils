@@ -39,7 +39,7 @@ import (
 )
 
 func TestF질의TR_NH(t *testing.T) {
-	F증권사_연결_모듈_실행()
+	F초기화()
 
 	TR구분 := lib.TR일반
 	질의값 := lib.NewNH조회_질의값(lib.NH_TR_ETF_현재가_조회, lib.F임의_종목_ETF().G코드())
@@ -59,7 +59,7 @@ func TestTR실시간_서비스_등록_및_해지(t *testing.T) {
 		t.SkipNow()
 	}
 
-	F증권사_연결_모듈_실행()
+	F초기화()
 	lib.F테스트_참임(t, F접속됨_NH()) // NH서버에 접속 되었는 지 확인.
 
 	종목모음_코스피, 에러 := lib.F종목모음_코스피()
