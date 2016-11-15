@@ -31,37 +31,57 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
-package connector_relay
+package api_helper
 
 import (
 	"github.com/ghts/lib"
-	"os"
 	"testing"
 )
 
-func TestMain(m *testing.M) {
-	lib.F테스트_모드_시작()
-	defer lib.F테스트_모드_종료()
-	defer close(lib.F공통_종료_채널())
+func TestF질의TR_NH(t *testing.T) {
+	TR구분 := lib.TR일반
+	질의값 := lib.NewNH조회_질의값(lib.NH_TR_ETF_현재가_조회, lib.F임의_종목_ETF().G코드())
 
-	// 증권사 API 커넥터 실행
-	const 증권사API_커넥터_실행파일_경로 = ""
+	응답_메시지 := F질의_NH(TR구분, 질의값)
+	lib.F테스트_다름(t, 응답_메시지, nil)
+	lib.F테스트_에러없음(t, 응답_메시지.G에러())
+	lib.F테스트_같음(t, 응답_메시지.G길이(), 1)
 
-	ch실행결과 := make(chan lib.I채널_메시지, 1)
-	lib.F외부_프로세스_실행(ch실행결과, lib.P무기한, 증권사API_커넥터_실행파일_경로)
+	응답값 := lib.NewNH_ETF_현재가_조회_응답()
+	lib.F테스트_에러없음(t, 응답_메시지.G값(0, 응답값))
+	lib.F테스트_다름(t, 응답값, nil)
+}
 
-	실행결과 := <-ch실행결과
-	lib.F에러2패닉(실행결과.G에러())
-
-	var 프로세스ID int
-	if 실행결과.G값(0).(lib.T신호) == lib.P신호_초기화 {
-		프로세스ID = 실행결과.G값(1).(int)
+func TestTR실시간_서비스_등록_및_해지(t *testing.T) {
+	if !lib.F한국증시_거래시간임() {
+		t.SkipNow()
 	}
 
-	테스트_실행결과 := m.Run()
+	lib.F테스트_참임(t, F접속됨_NH()) // NH서버에 접속 되었는 지 확인.
 
-	에러 := lib.F프로세스_종료by프로세스ID(프로세스ID)
-	lib.F에러2패닉(에러)
+	종목모음_코스피, 에러 := lib.F종목모음_코스피()
+	lib.F테스트_에러없음(t, 에러)
 
-	os.Exit(테스트_실행결과)
+	종목코드_모음 := make([]string, 0)
+	for _, 종목 := range 종목모음_코스피 {
+		종목코드_모음 = append(종목코드_모음, 종목.G코드())
+		if len(종목코드_모음) > 20 {
+			break
+		}
+	}
+
+	// 실시간 정보 구독
+	ch수신 := make(chan lib.I소켓_메시지, 10)
+	에러 = F실시간_정보_구독_NH(ch수신, lib.NH_RT코스피_체결, 종목코드_모음)
+	lib.F테스트_에러없음(t, 에러)
+
+	// 실시간 정보 수신 확인
+	for i := 0; i < 10; i++ {
+		실시간_정보 := <-ch수신
+		lib.F변수값_확인(실시간_정보)
+	}
+
+	// 실시간 정보 해지
+	에러 = F실시간_정보_해지_NH(ch수신, lib.NH_RT코스피_체결, 종목코드_모음)
+	lib.F테스트_에러없음(t, 에러)
 }

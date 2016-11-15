@@ -31,7 +31,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
-package connector_relay
+package api_helper
 
 import (
 	"github.com/ghts/lib"
@@ -171,3 +171,15 @@ func new대기_중_데이터_저장소() *s대기_중_데이터_저장소 {
 
 	return s
 }
+
+//type S틱_데이터 struct {
+//	M종목코드     string
+//	M시각       time.Time
+//	M매수_호가_모음 []int64
+//	M매수_잔량_모음 []int64
+//	M매도_호가_모음 []int64
+//	M매도_잔량_모음 []int64
+//	M현재가      int64
+//	NAV       float64
+//	M거래량      int64
+//}

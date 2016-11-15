@@ -31,7 +31,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
-package connector_relay
+package api_helper
 
 import (
 	"github.com/ghts/lib"
@@ -41,15 +41,6 @@ import (
 var 실시간_정보_중계_NH = lib.New안전한_bool(false)
 var 구독내역_저장소_NH = new실시간_정보_구독_내역_저장소()
 var 대기_중_데이터_저장소_NH = new대기_중_데이터_저장소()
-
-// 초기화
-func F초기화() error {
-	// TODO
-	// NH API 모듈 실행화일 실행
-	lib.F메모("F초기화()")
-
-	return nil
-}
 
 // 접속 되었는 지 확인.
 func F접속됨_NH() (참거짓 bool) {
@@ -74,7 +65,11 @@ func F질의_NH(TR구분 lib.TR구분, 질의값_모음 ...interface{}) (응답 
 func F실시간_정보_구독_NH(ch수신 chan lib.I소켓_메시지, RT코드 string, 종목코드_모음 []string) (에러 error) {
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M에러: &에러})
 
-	F실시간_정보_중계_NH()
+	if !실시간_정보_중계_NH.G값() {
+		ch초기화 := make(chan lib.T신호)
+		go f실시간_정보_중계_NH(ch초기화) // 실시간 정보 중계 초기화
+		<-ch초기화
+	}
 
 	질의값 := lib.NewNH실시간_정보_질의값(RT코드, 종목코드_모음)
 	응답 := F질의_NH(lib.TR실시간_정보_구독, 질의값)
@@ -103,18 +98,22 @@ func F실시간_정보_해지_NH(ch수신 chan lib.I소켓_메시지, RT코드 s
 	return 응답.G에러()
 }
 
-func F실시간_정보_중계_NH() {
+func f실시간_정보_중계_초기화_NH() {
 	if !실시간_정보_중계_NH.G값() {
-		go f실시간_정보_중계_NH()
+		ch초기화 := make(chan lib.T신호)
+		go f실시간_정보_중계_NH(ch초기화)
+		<-ch초기화
 	}
 }
 
-func f실시간_정보_중계_NH() {
+func f실시간_정보_중계_NH(ch초기화 chan lib.T신호) {
 	if 에러 := 실시간_정보_중계_NH.S값(true); 에러 != nil {
+		ch초기화 <- lib.P신호_초기화
 		return
 	}
 
 	defer 실시간_정보_중계_NH.S값(false)
+	ch초기화 <- lib.P신호_초기화
 
 	for {
 		for _, 소켓 := range 구독내역_저장소_NH.G소켓_모음() {
