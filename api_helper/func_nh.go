@@ -38,10 +38,6 @@ import (
 	"github.com/go-mangos/mangos"
 )
 
-var 실시간_정보_중계_NH = lib.New안전한_bool(false)
-var 구독내역_저장소_NH = new실시간_정보_구독_내역_저장소()
-var 대기_중_데이터_저장소_NH = new대기_중_데이터_저장소()
-
 // 접속 되었는 지 확인.
 func F접속됨_NH() (참거짓 bool) {
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M함수: func() { 참거짓 = false }})
@@ -65,11 +61,7 @@ func F질의_NH(TR구분 lib.TR구분, 질의값_모음 ...interface{}) (응답 
 func F실시간_정보_구독_NH(ch수신 chan lib.I소켓_메시지, RT코드 string, 종목코드_모음 []string) (에러 error) {
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M에러: &에러})
 
-	if !실시간_정보_중계_NH.G값() {
-		ch초기화 := make(chan lib.T신호)
-		go f실시간_정보_중계_NH(ch초기화) // 실시간 정보 중계 초기화
-		<-ch초기화
-	}
+	fNH_실시간_정보_중계_초기화()
 
 	질의값 := lib.NewNH실시간_정보_질의값(RT코드, 종목코드_모음)
 	응답 := F질의_NH(lib.TR실시간_정보_구독, 질의값)
@@ -98,65 +90,19 @@ func F실시간_정보_해지_NH(ch수신 chan lib.I소켓_메시지, RT코드 s
 	return 응답.G에러()
 }
 
-func f실시간_정보_중계_초기화_NH() {
-	if !실시간_정보_중계_NH.G값() {
-		ch초기화 := make(chan lib.T신호)
-		go f실시간_정보_중계_NH(ch초기화)
-		<-ch초기화
-	}
-}
+func F실시간_데이터_수집_NH_ETF(종목코드_모음 []string) {
+	var 에러 error
 
-func f실시간_정보_중계_NH(ch초기화 chan lib.T신호) {
-	if 에러 := 실시간_정보_중계_NH.S값(true); 에러 != nil {
-		ch초기화 <- lib.P신호_초기화
-		return
-	}
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
+		M에러:         &에러,
+		M함수with패닉내역: func(r interface{}) {
+			lib.New에러with출력(r)
+		}})
 
-	defer 실시간_정보_중계_NH.S값(false)
-	ch초기화 <- lib.P신호_초기화
+	fNH_실시간_데이터_수집_초기화()
 
-	for {
-		for _, 소켓 := range 구독내역_저장소_NH.G소켓_모음() {
-			lib.F메모("소켓과 수신 채널이 유효한 지 검사해야 함.")
-
-			if 소켓 == nil {
-				continue
-			}
-
-			ch수신, 에러 := 구독내역_저장소_NH.G중계_채널(소켓)
-			if ch수신 == nil || 에러 != nil {
-				continue
-			}
-
-			// 해당 소켓에 대기 중인 모든 메시지를 중계한 후 다음 소켓으로 넘어간다.
-			// 타임아웃을 음수로 설정해서 non-blocking으로 동작함.
-			바이트_모음, 에러 := 소켓.Recv()
-			if 에러 != nil {
-				lib.F에러_출력(에러)
-				continue
-			} else if len(바이트_모음) == 0 {
-				continue
-			}
-
-			소켓_메시지 := lib.New소켓_메시지from바이트_모음(바이트_모음)
-			if 소켓_메시지.G에러() != nil {
-				lib.F에러_출력(소켓_메시지.G에러())
-				continue
-			}
-
-			select {
-			case ch수신 <- 소켓_메시지: // 메시지 중계 성공
-			default: // 메시지 중계 실패. 저장소에 보관하고 추후 재전송
-				대기_중_데이터_저장소_NH.S추가(소켓_메시지, ch수신)
-			}
-		}
-
-		대기_중_데이터_저장소_NH.S재전송()
-
-		// 종료 조건 확인
-		select {
-		case <-lib.F공통_종료_채널():
-			return
-		}
-	}
+	lib.F대기(lib.P500밀리초)
+	lib.F에러2패닉(F실시간_정보_구독_NH(ch실시간_데이터_수집, lib.NH_RT코스피_호가_잔량, 종목코드_모음))
+	lib.F에러2패닉(F실시간_정보_구독_NH(ch실시간_데이터_수집, lib.NH_RT코스피_체결, 종목코드_모음))
+	lib.F에러2패닉(F실시간_정보_구독_NH(ch실시간_데이터_수집, lib.NH_RT코스피_ETF_NAV, 종목코드_모음))
 }

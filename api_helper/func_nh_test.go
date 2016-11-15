@@ -85,3 +85,17 @@ func TestTR실시간_서비스_등록_및_해지(t *testing.T) {
 	에러 = F실시간_정보_해지_NH(ch수신, lib.NH_RT코스피_체결, 종목코드_모음)
 	lib.F테스트_에러없음(t, 에러)
 }
+
+func Test_ETF_틱_데이터_수집_NH(t *testing.T) {
+	종목_모음, 에러 := lib.F종목모음_ETF()
+	lib.F테스트_에러없음(t, 에러)
+
+	defer func() {
+		close(lib.F공통_종료_채널())
+		lib.F공통_종료_채널_재설정()
+	}()
+
+	F실시간_데이터_수집_NH_ETF(lib.F2종목코드_모음(종목_모음))
+
+	lib.F메모("실시간 데이터가 DB에저장되는 것을 확인할 것.")
+}

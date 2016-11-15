@@ -31,9 +31,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
-package realtime_data_nh
+package api_helper
 
-/*
 import (
 	"github.com/ghts/lib"
 	"strings"
@@ -41,30 +40,9 @@ import (
 	"time"
 )
 
+// 여기에서 별도로 도우미 함수 기능을 테스트 하지 않고,
+// 도우미 함수의 테스트는 메인 함수의 기능 테스트로 대체.
+
 func TestF틱_데이터_파일명(t *testing.T) {
-	종목 := lib.F임의_종목()
-	lib.F테스트_참임(t, strings.Contains(f틱_데이터_파일명(종목), 종목.G코드()))
-	lib.F테스트_참임(t, strings.Contains(f틱_데이터_파일명(종목), time.Now().Format(lib.P일자_형식)))
+	lib.F테스트_참임(t, strings.Contains(fNH_실시간_데이터_파일명(), time.Now().Format(lib.P일자_형식)))
 }
-
-func Test_ETF_틱_데이터_수집_NH(t *testing.T) {
-	const 반복횟수 int = 20
-	초기화_완료 := make(chan bool, 반복횟수)
-
-	for i := 0; i < 반복횟수; i++ {
-		go f틱_데이터_수집_NH_ETF(lib.F임의_종목_ETF(), 초기화_완료)
-	}
-
-	for i := 0; i < 반복횟수; i++ {
-		lib.F테스트_참임(t, <-초기화_완료)
-	}
-
-	time.Sleep(lib.P30초)
-
-	close(lib.F공통_종료_채널())
-
-	time.Sleep(lib.P3초)
-
-	lib.F공통_종료_채널_재설정()
-}
-*/
