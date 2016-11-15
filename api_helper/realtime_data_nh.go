@@ -141,7 +141,6 @@ func f실시간_데이터_저장(ch초기화 chan lib.T신호) {
 	데이터베이스, 에러 := lib.NewBoltDB(fNH_실시간_데이터_파일명())
 	lib.F에러2패닉(에러)
 
-
 	var 수신_메시지 lib.I소켓_메시지
 	ch종료 := lib.F공통_종료_채널()
 	ch초기화 <- lib.P신호_초기화

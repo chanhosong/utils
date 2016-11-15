@@ -94,7 +94,7 @@ func F실시간_데이터_수집_NH_ETF(종목코드_모음 []string) {
 	var 에러 error
 
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
-		M에러:         &에러,
+		M에러: &에러,
 		M함수with패닉내역: func(r interface{}) {
 			lib.New에러with출력(r)
 		}})

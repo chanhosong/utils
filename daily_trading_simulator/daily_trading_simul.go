@@ -91,7 +91,7 @@ func (s S일일가격정보_저장소) g일자_도우미(일자_모음 []time.Ti
 		return 일자_모음[0].AddDate(0, 0, -1), nil
 	case 일자_차이 < 0 && 당일_인덱스 < 일자_차이*-1,
 		일자_차이 >= 0 && 당일_인덱스+일자_차이 >= len(일자_모음):
-		return time.Time{},     lib.New에러("데이터 없음. %v %v", 당일_인덱스, 일자_차이)
+		return time.Time{}, lib.New에러("데이터 없음. %v %v", 당일_인덱스, 일자_차이)
 	default:
 		return 일자_모음[당일_인덱스+일자_차이], nil
 	}
