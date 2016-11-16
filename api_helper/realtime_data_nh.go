@@ -57,6 +57,8 @@ func f실시간_정보_중계_NH(ch초기화 chan lib.T신호) {
 	}
 
 	defer 실시간_정보_중계_NH.S값(false)
+
+	ch종료 := lib.F공통_종료_채널()
 	ch초기화 <- lib.P신호_초기화
 
 	for {
@@ -99,7 +101,7 @@ func f실시간_정보_중계_NH(ch초기화 chan lib.T신호) {
 
 		// 종료 조건 확인
 		select {
-		case <-lib.F공통_종료_채널():
+		case <-ch종료:
 			return
 		}
 	}
