@@ -43,7 +43,7 @@ import (
 func TestMain(m *testing.M) {
 	lib.F테스트_모드_시작()
 	defer lib.F테스트_모드_종료()
-	defer close(lib.F공통_종료_채널())
+	defer lib.F공통_종료_채널_닫은_후_재설정()
 
 	os.Exit(m.Run())
 }
