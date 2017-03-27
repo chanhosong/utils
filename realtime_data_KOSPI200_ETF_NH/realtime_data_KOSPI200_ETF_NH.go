@@ -111,6 +111,7 @@ func main() {
 
 	for {
 		대기 := time.After(lib.P1분)
+
 		select {
 		case <-대기:
 		}
@@ -123,5 +124,9 @@ func main() {
 			db.G수량in버킷(버킷ID_업종지수)
 
 		lib.F문자열_출력("%s : %v", time.Now().Format(lib.P간략한_시간_형식), 저장_수량)
+
+		if lib.F테스트_모드_실행_중() {
+			return	// 테스트 할 때는 반복할 필요없음.
+		}
 	}
 }
