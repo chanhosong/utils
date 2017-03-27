@@ -1,6 +1,8 @@
 .idea
+/*.iml
 
 *.dat
+*.dat.lock
+*.exe
 
-/*.iml
-/api_helper/spawned_process_list
+
