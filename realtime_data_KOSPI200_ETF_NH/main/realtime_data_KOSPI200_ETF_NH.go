@@ -51,7 +51,7 @@ func main() {
 		M에러: &에러,
 		M함수 : func() { lib.F에러_출력(에러) }})
 
-	작업_디렉토리 := lib.F_GOPATH() + `/src/github.com/ghts/utils/realtime_data_KOSPI200_ETF_NH`
+	작업_디렉토리 := lib.F_GOPATH() + `/src/github.com/ghts/utils/realtime_data_KOSPI200_ETF_NH/main`
 	lib.F에러2패닉(os.Chdir(작업_디렉토리))
 
 	lib.F에러2패닉(nh.F접속_NH())
@@ -118,6 +118,7 @@ func main() {
 	defer func() {
 		저장수량_체크.Stop()
 		일자바뀜_체크.Stop()
+		nh.F실시간_데이터_해지_NH_ETF(종목코드_모음)
 	}()
 
 	for {
