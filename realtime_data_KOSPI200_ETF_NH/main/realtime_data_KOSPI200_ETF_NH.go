@@ -42,6 +42,9 @@ import (
 )
 
 func main() {
+
+	// 1. 날짜 바뀌면 재접속 후 DB 새로 생성
+	// 2. 시작할 때 시간 동기화
 	var 에러 error
 
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
@@ -94,14 +97,12 @@ func main() {
 	lib.F문자열_출력("종목 %v개 설정 완료", len(종목_모음))
 
 	종목코드_모음 := lib.F2종목코드_모음(종목_모음)
-	파일명 := "RealTimeData_NH_" + time.Now().Format(lib.P일자_형식) + ".dat"
 
-	db, 에러 := nh.F실시간_데이터_수집_NH_ETF(파일명, 종목코드_모음)
+	db, 에러 := f실시간_데이터_수집_초기화(종목코드_모음)
 	lib.F에러2패닉(에러)
 
 	lib.F문자열_출력("실시간 데이터 수집 시작")
 
-	// 1분마다 저장 수량 출력
 	버킷ID_호가_잔량 := []byte(nh.P버킷ID_NH호가_잔량)
 	버킷ID_시간외_호가_잔량 := []byte(nh.P버킷ID_NH시간외_호가잔량)
 	버킷ID_예상_호가_잔량 := []byte(nh.P버킷ID_NH예상_호가잔량)
@@ -109,24 +110,54 @@ func main() {
 	버킷ID_ETF_NAV := []byte(nh.P버킷ID_NH_ETF_NAV)
 	버킷ID_업종지수 := []byte(nh.P버킷ID_NH업종지수)
 
+	금일_문자열 := time.Now().Format(lib.P일자_형식)
+
+	저장수량_체크 := time.NewTicker(lib.P1분)
+	일자바뀜_체크 := time.NewTicker(lib.P10초)
+
+	defer func() {
+		저장수량_체크.Stop()
+		일자바뀜_체크.Stop()
+	}()
+
 	for {
-		대기 := time.After(lib.P1분)
-
 		select {
-		case <-대기:
+		case <-저장수량_체크.C:
+			저장_수량 := db.G수량in버킷(버킷ID_호가_잔량) +
+				db.G수량in버킷(버킷ID_시간외_호가_잔량) +
+				db.G수량in버킷(버킷ID_예상_호가_잔량) +
+				db.G수량in버킷(버킷ID_체결) +
+				db.G수량in버킷(버킷ID_ETF_NAV) +
+				db.G수량in버킷(버킷ID_업종지수)
+
+			lib.F문자열_출력("%s : %v", time.Now().Format(lib.P간략한_시간_형식), 저장_수량)
+
+			if lib.F테스트_모드_실행_중() {
+				return	// 테스트 할 때는 반복할 필요없음.
+			}
+		case <-일자바뀜_체크.C:
+			if 금일_문자열 == time.Now().Format(lib.P일자_형식) {
+				continue
+			}
+
+			lib.F공통_종료_채널_닫은_후_재설정()
+			db, 에러 = f실시간_데이터_수집_초기화(종목코드_모음)
+			lib.F에러2패닉(에러)
+
+			금일_문자열 = time.Now().Format(lib.P일자_형식)
+			lib.F문자열_출력("실시간 데이터 수집 재시작. %s", 금일_문자열)
 		}
 
-		저장_수량 := db.G수량in버킷(버킷ID_호가_잔량) +
-			db.G수량in버킷(버킷ID_시간외_호가_잔량) +
-			db.G수량in버킷(버킷ID_예상_호가_잔량) +
-			db.G수량in버킷(버킷ID_체결) +
-			db.G수량in버킷(버킷ID_ETF_NAV) +
-			db.G수량in버킷(버킷ID_업종지수)
-
-		lib.F문자열_출력("%s : %v", time.Now().Format(lib.P간략한_시간_형식), 저장_수량)
-
-		if lib.F테스트_모드_실행_중() {
-			return	// 테스트 할 때는 반복할 필요없음.
-		}
 	}
+}
+
+func f실시간_데이터_수집_초기화(종목코드_모음 []string) (db lib.I데이터베이스, 에러 error) {
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
+		M에러: &에러,
+		M함수 : func() { db = nil }})
+
+	금일_문자열 := time.Now().Format(lib.P일자_형식)
+	파일명 := "RealTimeData_NH_" + 금일_문자열 + ".dat"
+
+	return nh.F실시간_데이터_수집_NH_ETF(파일명, 종목코드_모음)
 }
