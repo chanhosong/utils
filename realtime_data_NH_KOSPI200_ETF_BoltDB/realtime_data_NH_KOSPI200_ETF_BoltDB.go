@@ -50,7 +50,7 @@ func main() {
 		M에러: &에러,
 		M함수 : func() { lib.F에러_출력(에러) }})
 
-	작업_디렉토리 := lib.F_GOPATH() + `/src/github.com/ghts/utils/realtime_data_KOSPI200_ETF_NH`
+	작업_디렉토리 := lib.F_GOPATH() + `/src/github.com/ghts/utils/realtime_data_NH_KOSPI200_ETF_BoltDB`
 	lib.F에러2패닉(os.Chdir(작업_디렉토리))
 
 	lib.F에러2패닉(nh.F접속_NH())
