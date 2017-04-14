@@ -39,6 +39,7 @@ import (
 	"time"
 	"strings"
 	"os"
+	"runtime"
 )
 
 func main() {
@@ -50,7 +51,11 @@ func main() {
 		M에러: &에러,
 		M함수 : func() { lib.F에러_출력(에러) }})
 
-	작업_디렉토리 := lib.F_GOPATH() + `/src/github.com/ghts/utils/realtime_data_NH_KOSPI200_ETF_BoltDB`
+	_, 파일명, _, ok := runtime.Caller(0)
+	lib.F조건부_패닉(!ok, "디렉토리를 찾을 수 없습니다.")
+
+	작업_디렉토리, 에러 := lib.F디렉토리명(파일명)
+	lib.F에러2패닉(에러)
 	lib.F에러2패닉(os.Chdir(작업_디렉토리))
 
 	lib.F에러2패닉(nh.F접속_NH())
