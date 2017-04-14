@@ -139,7 +139,7 @@ func main() {
 			lib.F문자열_출력("%s : %v", time.Now().Format(lib.P간략한_시간_형식), 저장_수량)
 
 			if lib.F테스트_모드_실행_중() {
-				return	// 테스트 할 때는 반복할 필요없음.
+				return    // 테스트 할 때는 반복할 필요없음.
 			}
 		case <-일자바뀜_체크.C:
 			if 금일_문자열 == time.Now().Format(lib.P일자_형식) {
@@ -153,11 +153,10 @@ func main() {
 			금일_문자열 = time.Now().Format(lib.P일자_형식)
 			lib.F문자열_출력("실시간 데이터 수집 재시작. %s", 금일_문자열)
 		}
-
 	}
 }
 
-func f실시간_데이터_수집_초기화(종목코드_모음 []string) (db lib.I데이터베이스, 에러 error) {
+func f실시간_데이터_수집_초기화(종목코드_모음 []string) (db lib.I데이터베이스_Bolt, 에러 error) {
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
 		M에러: &에러,
 		M함수 : func() { db = nil }})
