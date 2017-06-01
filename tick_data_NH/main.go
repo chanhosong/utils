@@ -34,33 +34,23 @@ along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-	nh "github.com/ghts/api_helper_nh"
 	"github.com/ghts/lib"
-	"time"
+	nh "github.com/ghts/api_helper_nh"
+	_ "github.com/go-sql-driver/mysql"
+
 	"strings"
-	"os"
-	"runtime"
 )
 
 func main() {
-	// TODO :  시작할 때 시간 동기화
-
 	var 에러 error
 
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
 		M에러: &에러,
 		M함수 : func() { lib.F에러_출력(에러) }})
 
-	_, 파일명, _, ok := runtime.Caller(0)
-	lib.F조건부_패닉(!ok, "디렉토리를 찾을 수 없습니다.")
-
-	작업_디렉토리, 에러 := lib.F디렉토리명(파일명)
-	lib.F에러2패닉(에러)
-	lib.F에러2패닉(os.Chdir(작업_디렉토리))
+	// TODO :  시작하기 전에 시간 동기화
 
 	lib.F에러2패닉(nh.F접속_NH())
-
-	lib.F문자열_출력("접속됨")
 
 	종목_모음 := []*lib.S종목{
 		lib.New종목("069500", "KODEX 200", lib.P시장구분_ETF),
@@ -104,70 +94,23 @@ func main() {
 
 	nh.F접속유지()	// 공유기 사용 시 접속 끊기는 것 방지.
 
-	db, 에러 := f실시간_데이터_수집_초기화(종목코드_모음)
+	db, 에러 := F실시간_데이터_수집_NH_ETF_MySQL(종목코드_모음)
 	lib.F에러2패닉(에러)
+	defer db.Close()
 
 	lib.F문자열_출력("실시간 데이터 수집 시작")
 
-	버킷ID_호가_잔량 := []byte(nh.P버킷ID_NH호가_잔량)
-	버킷ID_시간외_호가_잔량 := []byte(nh.P버킷ID_NH시간외_호가잔량)
-	버킷ID_예상_호가_잔량 := []byte(nh.P버킷ID_NH예상_호가잔량)
-	버킷ID_체결 := []byte(nh.P버킷ID_NH체결)
-	버킷ID_ETF_NAV := []byte(nh.P버킷ID_NH_ETF_NAV)
-	버킷ID_업종지수 := []byte(nh.P버킷ID_NH업종지수)
-
-	금일_문자열 := time.Now().Format(lib.P일자_형식)
-
-	저장수량_체크 := time.NewTicker(lib.P1분)
-	일자바뀜_체크 := time.NewTicker(lib.P10초)
-
-	if lib.F테스트_모드_실행_중() {
-		저장수량_체크 = time.NewTicker(lib.P10초)
-	}
+	//금일_문자열 := time.Now().Format(lib.P일자_형식)
+	//저장수량_체크 := time.NewTicker(lib.P1분)
+	//일자바뀜_체크 := time.NewTicker(lib.P10초)
+	//
+	//if lib.F테스트_모드_실행_중() {
+	//	저장수량_체크 = time.NewTicker(lib.P10초)
+	//}
 
 	defer func() {
-		저장수량_체크.Stop()
-		일자바뀜_체크.Stop()
 		nh.F실시간_데이터_해지_NH_ETF(종목코드_모음)
 	}()
-
-	for {
-		select {
-		case <-저장수량_체크.C:
-			저장_수량 := db.G수량in버킷(버킷ID_호가_잔량) +
-				db.G수량in버킷(버킷ID_시간외_호가_잔량) +
-				db.G수량in버킷(버킷ID_예상_호가_잔량) +
-				db.G수량in버킷(버킷ID_체결) +
-				db.G수량in버킷(버킷ID_ETF_NAV) +
-				db.G수량in버킷(버킷ID_업종지수)
-
-			lib.F문자열_출력("%s : %v", time.Now().Format(lib.P간략한_시간_형식), 저장_수량)
-
-			if lib.F테스트_모드_실행_중() {
-				return    // 테스트 할 때는 반복할 필요없음.
-			}
-		case <-일자바뀜_체크.C:
-			if 금일_문자열 == time.Now().Format(lib.P일자_형식) {
-				continue
-			}
-
-			lib.F공통_종료_채널_닫은_후_재설정()
-			db, 에러 = f실시간_데이터_수집_초기화(종목코드_모음)
-			lib.F에러2패닉(에러)
-
-			금일_문자열 = time.Now().Format(lib.P일자_형식)
-			lib.F문자열_출력("실시간 데이터 수집 재시작. %s", 금일_문자열)
-		}
-	}
 }
 
-func f실시간_데이터_수집_초기화(종목코드_모음 []string) (db lib.I데이터베이스_Bolt, 에러 error) {
-	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
-		M에러: &에러,
-		M함수 : func() { db = nil }})
-
-	금일_문자열 := time.Now().Format(lib.P일자_형식)
-	파일명 := "RealTimeData_NH_" + 금일_문자열 + ".dat"
-
-	return nh.F실시간_데이터_수집_NH_ETF(파일명, 종목코드_모음)
-}
+type S더미 struct {}
