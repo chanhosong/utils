@@ -46,7 +46,7 @@ import (
 
 var 실시간_데이터_수집_MySQL_고루틴_실행_중 = lib.New안전한_bool(false)
 
-func F실시간_데이터_수집_NH_ETF_MySQL(종목코드_모음 []string) (db *sql.DB, 에러 error) {
+func f실시간_데이터_수집_NH_ETF_MySQL(종목코드_모음 []string) (db *sql.DB, 에러 error) {
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
 		M에러: &에러,
 		M함수with패닉내역: func(r interface{}) {
@@ -54,19 +54,32 @@ func F실시간_데이터_수집_NH_ETF_MySQL(종목코드_모음 []string) (db 
 			db = nil
 		}})
 
+	lib.F체크포인트()
+
 	ch수신 := make(chan lib.I소켓_메시지, 10000)
 	ch초기화 := make(chan lib.T신호)
 
+	lib.F체크포인트("1")
+
 	nh.F실시간_데이터_구독_NH_ETF(ch수신, 종목코드_모음)
+
+	lib.F체크포인트("2")
+
 	defer nh.F실시간_데이터_해지_NH_ETF(종목코드_모음)
 
-	nh.Go루틴_실시간_정보_중계(ch초기화)
+	lib.F체크포인트("3")
+
+	nh.Go루틴_실시간_정보_중계_MySQL(ch초기화)
 	신호 := <-ch초기화
 	lib.F조건부_패닉(신호 != lib.P신호_초기화, "예상하지 못한 신호. %v", 신호)
+
+	lib.F체크포인트()
 
 	go go루틴_실시간_데이터_수집_MySQL(ch초기화, ch수신)
 	신호 = <-ch초기화
 	lib.F조건부_패닉(신호 != lib.P신호_초기화, "예상하지 못한 신호. %v", 신호)
+
+	lib.F체크포인트()
 
 	return db, nil
 }
@@ -452,7 +465,7 @@ func fMySQL_접속정보() (아이디, 암호, DB명 string) {
 	섹션, 에러 := cfg파일.GetSection("MySQL")
 	lib.F에러2패닉(에러)
 
-	키_ID, 에러 := 섹션.GetKey("USER")
+	키_ID, 에러 := 섹션.GetKey("ID")
 	lib.F에러2패닉(에러)
 	아이디 = 키_ID.String()
 

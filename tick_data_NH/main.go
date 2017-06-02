@@ -94,7 +94,7 @@ func main() {
 
 	nh.F접속유지()	// 공유기 사용 시 접속 끊기는 것 방지.
 
-	db, 에러 := F실시간_데이터_수집_NH_ETF_MySQL(종목코드_모음)
+	db, 에러 := f실시간_데이터_수집_NH_ETF_MySQL(종목코드_모음)
 	lib.F에러2패닉(에러)
 	defer db.Close()
 

@@ -1,138 +1,135 @@
 CREATE DATABASE IF NOT EXISTS nh_tick_data;
 
-CREATE TABLE IF NOT EXISTS Deal (   // 체결
+USE nh_tick_data;
+
+CREATE TABLE IF NOT EXISTS Deal (   # 체결
     Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    Code CHAR(6) NOT NULL,  // 종목코드
-    Time  DATETIME NOT NULL,    // 시각
-    DiffSign TINYINT UNSIGNED NOT NULL,  // 등락부호
-    Diff DECIMAL(8,2) NOT NULL, // 등락폭
-    DiffRate FLOAT NOT NULL,    // 등락율
-    MarketPrice DECIMAL(15,2) NOT NULL, // 현재가
-    High DECIMAL(15,2) NOT NULL,    // 고가
-    Low DECIMAL(15,2) NOT NULL, // 저가
-    OfferPrice DECIMAL(15,2) NOT NULL,  // 매도 호가
-    BidPrice DECIMAL(15,2) NOT NULL,    // 매수 호가
-    Volume BIGINT NOT NULL,  // 누적 거래량
-    VsPrevVolRate FLOAT NOT NULL,    // 전일대비 거래량 비율
-	DiffVolume BIGINT NOT NULL,  // 변동 거래량
-	TrAmount DECIMAL(30,2) NOT NULL, // 거래 대금 (100만)
-	Open DECIMAL(15,2) NOT NULL,   // 시가
-	WeightAvgPrice DECIMAL(15,2) NOT NULL, // 가중 평균 가격
-	Market TINYINT UNSIGNED NOT NULL, // 시장 구분
+    Code CHAR(6) NOT NULL,  # 종목코드
+    Time  DATETIME NOT NULL,    # 시각
+    DiffSign TINYINT UNSIGNED NOT NULL,  # 등락부호
+    Diff DECIMAL(8,2) NOT NULL, # 등락폭
+    DiffRate FLOAT NOT NULL,    # 등락율
+    MarketPrice DECIMAL(15,2) NOT NULL, # 현재가
+    High DECIMAL(15,2) NOT NULL,    # 고가
+    Low DECIMAL(15,2) NOT NULL, # 저가
+    OfferPrice DECIMAL(15,2) NOT NULL,  # 매도 호가
+    BidPrice DECIMAL(15,2) NOT NULL,    # 매수 호가
+    Volume BIGINT NOT NULL,  # 누적 거래량
+    VsPrevVolRate FLOAT NOT NULL,    # 전일대비 거래량 비율
+	DiffVolume BIGINT NOT NULL,  # 변동 거래량
+	TrAmount DECIMAL(30,2) NOT NULL, # 거래 대금 (100만)
+	Open DECIMAL(15,2) NOT NULL,   # 시가
+	WeightAvgPrice DECIMAL(15,2) NOT NULL, # 가중 평균 가격
+	Market TINYINT UNSIGNED NOT NULL, # 시장 구분
     PRIMARY KEY (Id)
-) CHARACTER SET = utf8mp4;
+) CHARACTER SET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS OfferBid (   // 호가 잔량
+CREATE TABLE IF NOT EXISTS OfferBid (   # 호가 잔량
     Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    Code CHAR(6) NOT NULL,  // 종목코드
-    Time DATETIME NOT NULL,    // 시각
-    OfferPrice1 DECIMAL(15,2) NOT NULL,  // 매도 호가
-    BidPrice1 DECIMAL(15,2) NOT NULL,    // 매수 호가
-    OfferVolume1 INT NOT NULL,		// 매도 호가잔량
-    BidVolume1 INT NOT NULL,			// 매수 호가잔량
-    OfferPrice1 DECIMAL(15,2) NOT NULL,  // 차선 매도 호가
-    BidPrice1 DECIMAL(15,2) NOT NULL,    // 차선 매수 호가
-    OfferVolume1 INT NOT NULL,		// 차선 매도 호가잔량
-    BidVolume1 INT NOT NULL,			// 차선 매수 호가잔량
-    OfferPrice2 DECIMAL(15,2) NOT NULL,  // 차차선 매도 호가
-    BidPrice2 DECIMAL(15,2) NOT NULL,    // 차차선 매수 호가
-    OfferVolume2 INT NOT NULL,		// 차차선 매도 호가잔량
-    BidVolume2 INT NOT NULL,			// 차차선 매수 호가잔량
-    OfferPrice3 DECIMAL(15,2) NOT NULL,  // 3차선 매도 호가
-    BidPrice3 DECIMAL(15,2) NOT NULL,    // 3차선 매수 호가
-    OfferVolume3 INT NOT NULL,		// 3차선 매도 호가잔량
-    BidVolume3 INT NOT NULL,			// 3차선 매수 호가잔량
-    OfferPrice4 DECIMAL(15,2) NOT NULL,  // 4차선 매도 호가
-    BidPrice4 DECIMAL(15,2) NOT NULL,    // 4차선 매수 호가
-    OfferVolume4 INT NOT NULL,		// 4차선 매도 호가잔량
-    BidVolume4 INT NOT NULL,			// 4차선 매수 호가잔량    
-    OfferPrice5 DECIMAL(15,2) NOT NULL,  // 5차선 매도 호가
-    BidPrice5 DECIMAL(15,2) NOT NULL,    // 5차선 매수 호가
-    OfferVolume5 INT NOT NULL,		// 5차선 매도 호가잔량
-    BidVolume5 INT NOT NULL,			// 5차선 매수 호가잔량    
-    OfferPrice6 DECIMAL(15,2) NOT NULL,  // 6차선 매도 호가
-    BidPrice6 DECIMAL(15,2) NOT NULL,    // 6차선 매수 호가
-    OfferVolume6 INT NOT NULL,		// 6차선 매도 호가잔량
-    BidVolume6 INT NOT NULL,			// 6차선 매수 호가잔량
-    OfferPrice7 DECIMAL(15,2) NOT NULL,  // 7차선 매도 호가
-    BidPrice7 DECIMAL(15,2) NOT NULL,    // 7차선 매수 호가
-    OfferVolume7 INT NOT NULL,		// 7차선 매도 호가잔량
-    BidVolume7 INT NOT NULL,			// 7차선 매수 호가잔량
-    OfferPrice8 DECIMAL(15,2) NOT NULL,  // 8차선 매도 호가
-    BidPrice8 DECIMAL(15,2) NOT NULL,    // 8차선 매수 호가
-    OfferVolume8 INT NOT NULL,		// 8차선 매도 호가잔량
-    BidVolume8 INT NOT NULL,			// 8차선 매수 호가잔량
-    OfferPrice9 DECIMAL(15,2) NOT NULL,  // 9차선 매도 호가
-    BidPrice9 DECIMAL(15,2) NOT NULL,    // 9차선 매수 호가
-    OfferVolume9 INT NOT NULL,		// 9차선 매도 호가잔량
-    BidVolume9 INT NOT NULL,			// 9차선 매수 호가잔량
-    OfferPrice10 DECIMAL(15,2) NOT NULL,  // 10차선 매도 호가
-    BidPrice10 DECIMAL(15,2) NOT NULL,    // 10차선 매수 호가
-    OfferVolume10 INT NOT NULL,		// 10차선 매도 호가잔량
-    BidVolume10 INT NOT NULL,			// 10차선 매수 호가잔량
-    Volume BIGINT NOT NULL,				// 누적거래량
+    Code CHAR(6) NOT NULL,  # 종목코드
+    Time DATETIME NOT NULL,    # 시각
+    OfferPrice1 DECIMAL(15,2) NOT NULL,  # 매도 호가
+    BidPrice1 DECIMAL(15,2) NOT NULL,    # 매수 호가
+    OfferVolume1 INT NOT NULL,		# 매도 호가잔량
+    BidVolume1 INT NOT NULL,			# 매수 호가잔량
+    OfferPrice2 DECIMAL(15,2) NOT NULL,  # 차선 매도 호가
+    BidPrice2 DECIMAL(15,2) NOT NULL,    # 차선 매수 호가
+    OfferVolume2 INT NOT NULL,		# 차선 매도 호가잔량
+    BidVolume2 INT NOT NULL,			# 차선 매수 호가잔량
+    OfferPrice3 DECIMAL(15,2) NOT NULL,  # 3차선 매도 호가
+    BidPrice3 DECIMAL(15,2) NOT NULL,    # 3차선 매수 호가
+    OfferVolume3 INT NOT NULL,		# 3차선 매도 호가잔량
+    BidVolume3 INT NOT NULL,			# 3차선 매수 호가잔량
+    OfferPrice4 DECIMAL(15,2) NOT NULL,  # 4차선 매도 호가
+    BidPrice4 DECIMAL(15,2) NOT NULL,    # 4차선 매수 호가
+    OfferVolume4 INT NOT NULL,		# 4차선 매도 호가잔량
+    BidVolume4 INT NOT NULL,			# 4차선 매수 호가잔량    
+    OfferPrice5 DECIMAL(15,2) NOT NULL,  # 5차선 매도 호가
+    BidPrice5 DECIMAL(15,2) NOT NULL,    # 5차선 매수 호가
+    OfferVolume5 INT NOT NULL,		# 5차선 매도 호가잔량
+    BidVolume5 INT NOT NULL,			# 5차선 매수 호가잔량    
+    OfferPrice6 DECIMAL(15,2) NOT NULL,  # 6차선 매도 호가
+    BidPrice6 DECIMAL(15,2) NOT NULL,    # 6차선 매수 호가
+    OfferVolume6 INT NOT NULL,		# 6차선 매도 호가잔량
+    BidVolume6 INT NOT NULL,			# 6차선 매수 호가잔량
+    OfferPrice7 DECIMAL(15,2) NOT NULL,  # 7차선 매도 호가
+    BidPrice7 DECIMAL(15,2) NOT NULL,    # 7차선 매수 호가
+    OfferVolume7 INT NOT NULL,		# 7차선 매도 호가잔량
+    BidVolume7 INT NOT NULL,			# 7차선 매수 호가잔량
+    OfferPrice8 DECIMAL(15,2) NOT NULL,  # 8차선 매도 호가
+    BidPrice8 DECIMAL(15,2) NOT NULL,    # 8차선 매수 호가
+    OfferVolume8 INT NOT NULL,		# 8차선 매도 호가잔량
+    BidVolume8 INT NOT NULL,			# 8차선 매수 호가잔량
+    OfferPrice9 DECIMAL(15,2) NOT NULL,  # 9차선 매도 호가
+    BidPrice9 DECIMAL(15,2) NOT NULL,    # 9차선 매수 호가
+    OfferVolume9 INT NOT NULL,		# 9차선 매도 호가잔량
+    BidVolume9 INT NOT NULL,			# 9차선 매수 호가잔량
+    OfferPrice10 DECIMAL(15,2) NOT NULL,  # 10차선 매도 호가
+    BidPrice10 DECIMAL(15,2) NOT NULL,    # 10차선 매수 호가
+    OfferVolume10 INT NOT NULL,		# 10차선 매도 호가잔량
+    BidVolume10 INT NOT NULL,			# 10차선 매수 호가잔량
+    Volume BIGINT NOT NULL,				# 누적거래량
     PRIMARY KEY (Id)
-) CHARACTER SET = utf8mp4;
+) CHARACTER SET = utf8mb4;
 
-
-CREATE TABLE IF NOT EXISTS OffTimeOfferBid (    // 시간외 호가 잔량
+CREATE TABLE IF NOT EXISTS OffTimeOfferBid (    # 시간외 호가 잔량
     Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    Code CHAR(6) NOT NULL,  // 종목코드
-	Time DATETIME NOT NULL,    // 시각
-	OfferVolume BIGINT NOT NULL,		// 총 매도호가 잔량
-	BidVolume BIGINT NOT NULL,			// 총 매수호가 잔량
+    Code CHAR(6) NOT NULL,  # 종목코드
+	Time DATETIME NOT NULL,    # 시각
+	OfferVolume BIGINT NOT NULL,		# 총 매도호가 잔량
+	BidVolume BIGINT NOT NULL,			# 총 매수호가 잔량
 	PRIMARY KEY (Id)
-) CHARACTER SET = utf8mp4;
+) CHARACTER SET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS EstimatedOfferBid (  // 예상 호가 잔량
+CREATE TABLE IF NOT EXISTS EstimatedOfferBid (  # 예상 호가 잔량
 	Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    Code CHAR(6) NOT NULL,  // 종목코드
-    Time DATETIME NOT NULL,    // 시각
-	SyncOfferBid TINYINT UNSIGNED NOT NULL,  // 동시호가 구분
-	EstmPrice DECIMAL(15,2) NOT NULL,    // 예상 체결가
-	EstmDiffSign TINYINT UNSIGNED NOT NULL,  // 예상 등락부호
-	EstmDiff DECIMAL(15,2) NOT NULL,    // 예상 등락폭
-	EstmDiffRate FLOAT NOT NULL,    // 예상 등락률
-	EstmVolume INT NOT NULL,    // 예상 체결수량
-	OfferPrice DECIMAL(15,2) NOT NULL,    // 매도 호가
-	BidPrice DECIMAL(15,2) NOT NULL,    // 매수 호가
-	OfferVolume INT NOT NULL,    // 매도 호가 잔량
-	BidVolume INT NOT NULL,    // 매수 호가 잔량
+    Code CHAR(6) NOT NULL,  # 종목코드
+    Time DATETIME NOT NULL,    # 시각
+	SyncOfferBid TINYINT UNSIGNED NOT NULL,  # 동시호가 구분
+	EstmPrice DECIMAL(15,2) NOT NULL,    # 예상 체결가
+	EstmDiffSign TINYINT UNSIGNED NOT NULL,  # 예상 등락부호
+	EstmDiff DECIMAL(15,2) NOT NULL,    # 예상 등락폭
+	EstmDiffRate FLOAT NOT NULL,    # 예상 등락률
+	EstmVolume INT NOT NULL,    # 예상 체결수량
+	OfferPrice DECIMAL(15,2) NOT NULL,    # 매도 호가
+	BidPrice DECIMAL(15,2) NOT NULL,    # 매수 호가
+	OfferVolume INT NOT NULL,    # 매도 호가 잔량
+	BidVolume INT NOT NULL,    # 매수 호가 잔량
 	PRIMARY KEY (Id)
-) CHARACTER SET = utf8mp4;
+) CHARACTER SET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS ETF_NAV (    // ETF NAV
+CREATE TABLE IF NOT EXISTS ETF_NAV (    # ETF NAV
     Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    Code CHAR(6) NOT NULL,  // 종목코드
-    Time DATETIME NOT NULL,    // 시각
-	DiffSign TINYINT UNSIGNED NOT NULL, // 등락부호
-	Diff DECIMAL(15,2) NOT NULL,    // 등락폭
-	Current DECIMAL(15,2) NOT NULL,    // 현재가 NAV
-	Open DECIMAL(15,2) NOT NULL,    // 시가 NAV
-	High DECIMAL(15,2) NOT NULL,    // 고가 NAV
-	Low DECIMAL(15,2) NOT NULL,    // 저가 NAV
-	TrackErrSign TINYINT UNSIGNED NOT NULL, // 추적 오차 부호
-	TrackingError DECIMAL(15,2) NOT NULL,    // 추적오차
-	DivergeSign TINYINT UNSIGNED NOT NULL, // 괴리율 부호
-	DivergeRate FLOAT NOT NULL, // 괴리율
+    Code CHAR(6) NOT NULL,  # 종목코드
+    Time DATETIME NOT NULL,    # 시각
+	DiffSign TINYINT UNSIGNED NOT NULL, # 등락부호
+	Diff DECIMAL(15,2) NOT NULL,    # 등락폭
+	Current DECIMAL(15,2) NOT NULL,    # 현재가 NAV
+	Open DECIMAL(15,2) NOT NULL,    # 시가 NAV
+	High DECIMAL(15,2) NOT NULL,    # 고가 NAV
+	Low DECIMAL(15,2) NOT NULL,    # 저가 NAV
+	TrackErrSign TINYINT UNSIGNED NOT NULL, # 추적 오차 부호
+	TrackingError DECIMAL(15,2) NOT NULL,    # 추적오차
+	DivergeSign TINYINT UNSIGNED NOT NULL, # 괴리율 부호
+	DivergeRate FLOAT NOT NULL, # 괴리율
 	PRIMARY KEY (Id)
-) CHARACTER SET = utf8mp4;
+) CHARACTER SET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS SectorIndex (    // 업종지수
+CREATE TABLE IF NOT EXISTS SectorIndex (    # 업종지수
     Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    Code CHAR(2) NOT NULL,  // 업종코드
-    Time DATETIME NOT NULL,    // 시각
-    IndexValue FLOAT NOT NULL, // 현재값
-    DiffSign TINYINT UNSIGNED NOT NULL, // 등락부호
-    Diff FLOAT NOT NULL, // 등락폭
-    Volume BIGINT UNSIGNED NOT NULL,    // 거래량
-    TrAmount DECIMAL(20,2) NOT NULL,    // 거래대금
-    Open FLOAT NOT NULL, // 개장값
-    High FLOAT NOT NULL, // 최고값
-    HighTime DATETIME NOT NULL, // 최고값 시각
-    Low FLOAT NOT NULL, // 최저값
-    LowTime DATETIME NOT NULL, // 최저값 시각
-    DiffRate FLOAT NOT NULL, // 지수 등락율
-    TrVolRate FLOAT NOT NULL, // 거래 비중
+    Code CHAR(2) NOT NULL,  # 업종코드
+    Time DATETIME NOT NULL,    # 시각
+    IndexValue FLOAT NOT NULL, # 현재값
+    DiffSign TINYINT UNSIGNED NOT NULL, # 등락부호
+    Diff FLOAT NOT NULL, # 등락폭
+    Volume BIGINT UNSIGNED NOT NULL,    # 거래량
+    TrAmount DECIMAL(20,2) NOT NULL,    # 거래대금
+    Open FLOAT NOT NULL, # 개장값
+    High FLOAT NOT NULL, # 최고값
+    HighTime DATETIME NOT NULL, # 최고값 시각
+    Low FLOAT NOT NULL, # 최저값
+    LowTime DATETIME NOT NULL, # 최저값 시각
+    DiffRate FLOAT NOT NULL, # 지수 등락율
+    TrVolRate FLOAT NOT NULL, # 거래 비중
 	PRIMARY KEY (Id)
-) CHARACTER SET = utf8mp4;
+) CHARACTER SET = utf8mb4;
