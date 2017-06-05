@@ -41,7 +41,6 @@ import (
 	"bytes"
 )
 
-
 func TestMySQL_접속정보(t *testing.T) {
 	아이디, 암호, DB명 := fMySQL_접속정보()
 
@@ -59,6 +58,56 @@ func TestMySQL_DB(t *testing.T) {
 	db.Close()
 }
 
+func Test실시간_데이터_저장_MySQL_호가잔량(t *testing.T) {
+	db, 에러 := fMySQL_DB()
+	lib.F에러2패닉(에러)
+
+	버퍼 := new(bytes.Buffer)
+	버퍼.WriteString("SELECT COUNT(*) FROM OfferBid ")
+	버퍼.WriteString("WHERE Code = ? ")
+
+	var 원래_수량 int
+	에러 = db.QueryRow(버퍼.String(), "TEST").Scan(&원래_수량)
+	lib.F테스트_에러없음(t, 에러)
+
+	호가잔량1 := new(lib.NH호가_잔량)
+	호가잔량1.M종목코드 = "TEST"
+	호가잔량1.M시각 = time.Now()
+	호가잔량1.M매도_호가_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	호가잔량1.M매도_잔량_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	호가잔량1.M매수_호가_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	호가잔량1.M매수_잔량_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	호가잔량1.M누적_거래량 = 0
+
+	소켓_메시지1, 에러 := lib.New소켓_메시지(lib.CBOR, 호가잔량1)
+	lib.F테스트_에러없음(t, 에러)
+
+	호가잔량2 := new(lib.NH호가_잔량)
+	호가잔량2.M종목코드 = "TEST"
+	호가잔량2.M시각 = time.Now()
+	호가잔량2.M매도_호가_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	호가잔량2.M매도_잔량_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	호가잔량2.M매수_호가_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	호가잔량2.M매수_잔량_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	호가잔량2.M누적_거래량 = 0
+
+	소켓_메시지2, 에러 := lib.New소켓_메시지(lib.CBOR, 호가잔량2)
+	lib.F테스트_에러없음(t, 에러)
+
+	ch대기열 := make(chan lib.I소켓_메시지, 10)
+	ch대기열 <- 소켓_메시지1
+	ch대기열 <- 소켓_메시지2
+
+	에러 = fNH_실시간_데이터_저장_MySQL(ch대기열)
+	lib.F테스트_에러없음(t, 에러)
+
+	var 추가_후_수량 int
+	에러 = db.QueryRow(버퍼.String(), "TEST").Scan(&추가_후_수량)
+	lib.F테스트_에러없음(t, 에러)
+
+	lib.F테스트_같음(t, 추가_후_수량, 원래_수량 + 2)
+}
+
 func TestF실시간_데이터_수집_MySQL(t *testing.T) {
 	종목코드_모음 := lib.F2종목코드_모음(lib.F샘플_종목_모음_ETF())
 
@@ -67,41 +116,3 @@ func TestF실시간_데이터_수집_MySQL(t *testing.T) {
 
 	lib.F테스트_에러없음(t, 에러)
 }
-
-func Test실시간_데이터_저장_MySQL_호가잔량(t *testing.T) {
-	db, 에러 := fMySQL_DB()
-	lib.F에러2패닉(에러)
-
-	버퍼 := new(bytes.Buffer)
-	버퍼.WriteString("SELECT COUNT(*) FROM OfferBid ")
-	버퍼.WriteString("WHERE Code = ?")
-
-	var 원래_수량 int
-	에러 = db.QueryRow(버퍼.String(), "TEST").Scan(&원래_수량)
-	lib.F테스트_에러없음(t, 에러)
-
-	호가잔량 := new(lib.NH호가_잔량)
-	호가잔량.M종목코드 = "TEST"
-	호가잔량.M시각 = time.Now()
-	호가잔량.M매도_호가_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	호가잔량.M매도_잔량_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	호가잔량.M매수_호가_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	호가잔량.M매수_잔량_모음 = []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	호가잔량.M누적_거래량 = 0
-
-	소켓_메시지, 에러 := lib.New소켓_메시지(lib.CBOR, 호가잔량)
-	lib.F테스트_에러없음(t, 에러)
-
-	ch대기열 := make(chan lib.I소켓_메시지, 1)
-	ch대기열 <- 소켓_메시지
-
-	에러 = fNH_실시간_데이터_저장_MySQL(ch대기열)
-	lib.F테스트_에러없음(t, 에러)
-
-	var 추가_후_수량 int
-	에러 = db.QueryRow(버퍼.String()).Scan(&추가_후_수량)
-	lib.F테스트_에러없음(t, 에러)
-
-	lib.F테스트_같음(t, 추가_후_수량, 원래_수량 + 1)
-}
-

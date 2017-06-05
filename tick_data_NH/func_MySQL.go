@@ -122,22 +122,22 @@ func go루틴_실시간_데이터_수집_MySQL(ch초기화 chan lib.T신호, ch�
 }
 
 func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지) (에러 error) {
-	var db *sql.DB = nil
+	var tx *sql.Tx = nil
 	var 롤백_해야함 = false
 
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
 		M에러: &에러,
 		M함수: func() {
-			if db != nil && 롤백_해야함 {
-				stmt롤백, 에러 := db.Prepare("ROLLBACK")
-				lib.F에러2패닉(에러)
-
-				_, 에러 = stmt롤백.Exec()
-				lib.F에러2패닉(에러)
+			if tx != nil && 롤백_해야함 {
+				lib.F에러2패닉(tx.Rollback())
 			}}})
 
-	db, 에러 = fMySQL_DB()
+	db, 에러 := fMySQL_DB()
 	lib.F에러2패닉(에러)
+
+	tx, 에러 = db.Begin()
+	lib.F에러2패닉(에러)
+
 
 	버퍼 := new(bytes.Buffer)
 	버퍼.WriteString("INSERT INTO OfferBid (")
@@ -160,7 +160,7 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 	버퍼.WriteString("?, ?, ?, ?, ?, ?, ?, ?, ?, ?,")
 	버퍼.WriteString("?, ?, ?")
 	버퍼.WriteString(")")
-	stmtNH호가잔량, 에러 := db.Prepare(버퍼.String())
+	stmtNH호가잔량, 에러 := tx.Prepare(버퍼.String())
 	lib.F에러2패닉(에러)
 
 	버퍼 = new(bytes.Buffer)
@@ -168,11 +168,11 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 	버퍼.WriteString( "Code,")
 	버퍼.WriteString( "Time,")
 	버퍼.WriteString( "OfferVolume,")
-	버퍼.WriteString( "BidVolume,")
+	버퍼.WriteString( "BidVolume")
 	버퍼.WriteString(") VALUES (")
 	버퍼.WriteString("?, ?, ?, ?")
 	버퍼.WriteString(")")
-	stmtNH시간외_호가잔량, 에러 := db.Prepare(버퍼.String())
+	stmtNH시간외_호가잔량, 에러 := tx.Prepare(버퍼.String())
 	lib.F에러2패닉(에러)
 
 	버퍼 = new(bytes.Buffer)
@@ -194,11 +194,11 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 	버퍼.WriteString("?, ?, ?, ?, ?,")
 	버퍼.WriteString("?, ?")
 	버퍼.WriteString(")")
-	stmtNH예상_호가잔량, 에러 := db.Prepare(버퍼.String())
+	stmtNH예상_호가잔량, 에러 := tx.Prepare(버퍼.String())
 	lib.F에러2패닉(에러)
 
 	버퍼 = new(bytes.Buffer)
-	버퍼.WriteString("INSERT INTO 테이블명 (")
+	버퍼.WriteString("INSERT INTO Deal (")
 	버퍼.WriteString( "Code,")
 	버퍼.WriteString( "Time,")
 	버퍼.WriteString( "DiffSign,")
@@ -222,7 +222,7 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 	버퍼.WriteString("?, ?, ?, ?, ?,")
 	버퍼.WriteString("?, ?")
 	버퍼.WriteString(")")
-	stmtNH체결, 에러 := db.Prepare(버퍼.String())
+	stmtNH체결, 에러 := tx.Prepare(버퍼.String())
 	lib.F에러2패닉(에러)
 
 	버퍼 = new(bytes.Buffer)
@@ -244,7 +244,7 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 	버퍼.WriteString("?, ?, ?, ?, ?,")
 	버퍼.WriteString("?, ?")
 	버퍼.WriteString(")")
-	stmtNH_ETF_NAV, 에러 := db.Prepare(버퍼.String())
+	stmtNH_ETF_NAV, 에러 := tx.Prepare(버퍼.String())
 	lib.F에러2패닉(에러)
 
 	버퍼 = new(bytes.Buffer)
@@ -266,9 +266,9 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 	버퍼.WriteString(") VALUES (")
 	버퍼.WriteString("?, ?, ?, ?, ?,")
 	버퍼.WriteString("?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?, ?")
 	버퍼.WriteString(")")
-	stmtNH업종지수, 에러 := db.Prepare(버퍼.String())
+	stmtNH업종지수, 에러 := tx.Prepare(버퍼.String())
 	lib.F에러2패닉(에러)
 
 	NH호가_잔량 := lib.F자료형_문자열(lib.NH호가_잔량{})
@@ -278,14 +278,7 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 	NH_ETF_NAV := lib.F자료형_문자열(lib.NH_ETF_NAV{})
 	NH업종지수 := lib.F자료형_문자열(lib.NH업종지수{})
 
-	stmt트랜잭션_시작, 에러 := db.Prepare("START TRANSACTION")
-	lib.F에러2패닉(에러)
-
-	_, 에러 = stmt트랜잭션_시작.Exec()
-	lib.F에러2패닉(에러)
-
 	롤백_해야함 = true
-
 	길이 := len(ch대기열)
 
 	for i:=0 ; i<길이 ; i++ {
@@ -312,7 +305,6 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 				s.M매도_호가_모음[7], s.M매수_호가_모음[7], s.M매도_잔량_모음[7], s.M매수_잔량_모음[7],
 				s.M매도_호가_모음[8], s.M매수_호가_모음[8], s.M매도_잔량_모음[8], s.M매수_잔량_모음[8],
 				s.M매도_호가_모음[9], s.M매수_호가_모음[9], s.M매도_잔량_모음[9], s.M매수_잔량_모음[9],
-				s.M매도_호가_모음[10], s.M매수_호가_모음[10], s.M매도_잔량_모음[10], s.M매수_잔량_모음[10],
 				s.M누적_거래량)
 
 			lib.F에러2패닉(에러)
@@ -415,11 +407,7 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 		}
 	}
 
-	stmt커밋, 에러 := db.Prepare("COMMIT")
-	lib.F에러2패닉(에러)
-
-	_, 에러 = stmt커밋.Exec()
-	lib.F에러2패닉(에러)
+	lib.F에러2패닉(tx.Commit())
 
 	return nil
 }
@@ -432,7 +420,7 @@ func fMySQL_DB() (db *sql.DB, 에러 error) {
 		M함수: func() { db, 열린db = nil, nil }})
 
 	// 열린 DB가 정상적이면 재사용
-	if 열린db != nil && db.Ping() == nil {
+	if 열린db != nil && 열린db.Ping() == nil {
 		db = 열린db
 		return db, nil
 	}
