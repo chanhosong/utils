@@ -138,7 +138,6 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 	tx, 에러 = db.Begin()
 	lib.F에러2패닉(에러)
 
-
 	버퍼 := new(bytes.Buffer)
 	버퍼.WriteString("INSERT INTO OfferBid (")
 	버퍼.WriteString( "Code, Time,")
@@ -291,6 +290,11 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 		case NH호가_잔량:
 			s := new(lib.NH호가_잔량)
 			lib.F에러2패닉(수신_메시지.G값(0, s))
+
+			lib.F조건부_패닉(len(s.M매도_잔량_모음) < 10, "매도 잔량 모음 데이터 부족", len(s.M매도_잔량_모음))
+			lib.F조건부_패닉(len(s.M매도_호가_모음) < 10, "매도 호가 모음 데이터 부족", len(s.M매도_호가_모음))
+			lib.F조건부_패닉(len(s.M매수_잔량_모음) < 10, "매수 잔량 모음 데이터 부족", len(s.M매수_잔량_모음))
+			lib.F조건부_패닉(len(s.M매수_호가_모음) < 10, "매수 호가 모음 데이터 부족", len(s.M매수_호가_모음))
 
 			_, 에러 = stmtNH호가잔량.Exec(
 				s.M종목코드,
@@ -467,4 +471,3 @@ func fMySQL_접속정보() (아이디, 암호, DB명 string) {
 
 	return
 }
-

@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS Deal (   # 체결
     Code CHAR(6) NOT NULL,  # 종목코드
     Time  DATETIME NOT NULL,    # 시각
     DiffSign TINYINT UNSIGNED NOT NULL,  # 등락부호
-    Diff DECIMAL(8,2) NOT NULL, # 등락폭
+    Diff DECIMAL(15,2) NOT NULL, # 등락폭
     DiffRate FLOAT NOT NULL,    # 등락율
     MarketPrice DECIMAL(15,2) NOT NULL, # 현재가
     High DECIMAL(15,2) NOT NULL,    # 고가

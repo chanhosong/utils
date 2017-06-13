@@ -33,39 +33,4 @@ along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
 package main
 
-
-import (
-	"github.com/ghts/lib"
-
-	"os"
-	"testing"
-	"bytes"
-)
-
-func TestMain(m *testing.M) {
-	lib.F테스트_모드_시작()
-	defer lib.F테스트_모드_종료()
-	defer lib.F공통_종료_채널_닫은_후_재설정()
-	defer f테스트_데이터_정리()
-
-	os.Exit(m.Run())
-}
-
-func f테스트_데이터_정리() {
-	테이블명_모음 := []string{
-		"Deal", "OfferBid", "OffTimeOfferBid", "EstimatedOfferBid",
-		"ETF_NAV", "SectorIndex"}
-
-	for _, 테이블명 := range 테이블명_모음 {
-		종목코드 := 테스트용_종목코드
-
-		if 테이블명 == "SectorIndex" {
-			종목코드 = 테스트용_종목코드[:2]
-		}
-
-		버퍼 := new(bytes.Buffer)
-		버퍼.WriteString("DELETE FROM " + 테이블명 + " ")
-		버퍼.WriteString("WHERE Code = ?")
-		lib.F에러2패닉(fTX실행(버퍼.String(), 종목코드))
-	}
-}
+const 테스트용_종목코드 = "TEST"

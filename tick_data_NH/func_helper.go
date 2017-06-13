@@ -33,39 +33,39 @@ along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
 package main
 
-
 import (
 	"github.com/ghts/lib"
-
-	"os"
-	"testing"
-	"bytes"
 )
 
-func TestMain(m *testing.M) {
-	lib.F테스트_모드_시작()
-	defer lib.F테스트_모드_종료()
-	defer lib.F공통_종료_채널_닫은_후_재설정()
-	defer f테스트_데이터_정리()
+func fTX실행(sql문 string, 인자_모음 ...interface{}) (에러 error) {
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M에러 : &에러})
 
-	os.Exit(m.Run())
+	db, 에러 := fMySQL_DB()
+	lib.F에러2패닉(에러)
+
+	tx, 에러 := db.Begin()
+	lib.F에러2패닉(에러)
+
+	stmt, 에러 := tx.Prepare(sql문)
+	lib.F에러2패닉(에러)
+
+	_, 에러 = stmt.Exec(인자_모음...)
+	lib.F에러2패닉(에러)
+
+	lib.F에러2패닉(tx.Commit())
+
+	return 에러
 }
 
-func f테스트_데이터_정리() {
-	테이블명_모음 := []string{
-		"Deal", "OfferBid", "OffTimeOfferBid", "EstimatedOfferBid",
-		"ETF_NAV", "SectorIndex"}
+func f정수값_질의(sql문 string, 인자_모음 ...interface{}) (값 int, 에러 error) {
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
+		M에러 : &에러,
+		M함수 : func() { 값 = 0 }})
 
-	for _, 테이블명 := range 테이블명_모음 {
-		종목코드 := 테스트용_종목코드
+	db, 에러 := fMySQL_DB()
+	lib.F에러2패닉(에러)
 
-		if 테이블명 == "SectorIndex" {
-			종목코드 = 테스트용_종목코드[:2]
-		}
+	lib.F에러2패닉(db.QueryRow(sql문, 인자_모음...).Scan(&값))
 
-		버퍼 := new(bytes.Buffer)
-		버퍼.WriteString("DELETE FROM " + 테이블명 + " ")
-		버퍼.WriteString("WHERE Code = ?")
-		lib.F에러2패닉(fTX실행(버퍼.String(), 종목코드))
-	}
+	return 값, 에러
 }
