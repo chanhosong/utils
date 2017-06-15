@@ -5,7 +5,7 @@ USE nh_tick_data;
 CREATE TABLE IF NOT EXISTS Deal (   # 체결
     Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     Code CHAR(6) NOT NULL,  # 종목코드
-    Time  DATETIME NOT NULL,    # 시각
+    Time  DATETIME(6) NOT NULL,    # 시각
     DiffSign TINYINT UNSIGNED NOT NULL,  # 등락부호
     Diff DECIMAL(15,2) NOT NULL, # 등락폭
     DiffRate FLOAT NOT NULL,    # 등락율
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS Deal (   # 체결
 CREATE TABLE IF NOT EXISTS OfferBid (   # 호가 잔량
     Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     Code CHAR(6) NOT NULL,  # 종목코드
-    Time DATETIME NOT NULL,    # 시각
+    Time DATETIME(6) NOT NULL,    # 시각
     OfferPrice1 DECIMAL(15,2) NOT NULL,  # 매도 호가
     BidPrice1 DECIMAL(15,2) NOT NULL,    # 매수 호가
     OfferVolume1 INT NOT NULL,		# 매도 호가잔량
@@ -43,11 +43,11 @@ CREATE TABLE IF NOT EXISTS OfferBid (   # 호가 잔량
     OfferPrice4 DECIMAL(15,2) NOT NULL,  # 4차선 매도 호가
     BidPrice4 DECIMAL(15,2) NOT NULL,    # 4차선 매수 호가
     OfferVolume4 INT NOT NULL,		# 4차선 매도 호가잔량
-    BidVolume4 INT NOT NULL,			# 4차선 매수 호가잔량    
+    BidVolume4 INT NOT NULL,			# 4차선 매수 호가잔량
     OfferPrice5 DECIMAL(15,2) NOT NULL,  # 5차선 매도 호가
     BidPrice5 DECIMAL(15,2) NOT NULL,    # 5차선 매수 호가
     OfferVolume5 INT NOT NULL,		# 5차선 매도 호가잔량
-    BidVolume5 INT NOT NULL,			# 5차선 매수 호가잔량    
+    BidVolume5 INT NOT NULL,			# 5차선 매수 호가잔량
     OfferPrice6 DECIMAL(15,2) NOT NULL,  # 6차선 매도 호가
     BidPrice6 DECIMAL(15,2) NOT NULL,    # 6차선 매수 호가
     OfferVolume6 INT NOT NULL,		# 6차선 매도 호가잔량
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS OfferBid (   # 호가 잔량
 CREATE TABLE IF NOT EXISTS OffTimeOfferBid (    # 시간외 호가 잔량
     Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     Code CHAR(6) NOT NULL,  # 종목코드
-	Time DATETIME NOT NULL,    # 시각
+	Time DATETIME(6) NOT NULL,    # 시각
 	OfferVolume BIGINT NOT NULL,		# 총 매도호가 잔량
 	BidVolume BIGINT NOT NULL,			# 총 매수호가 잔량
 	PRIMARY KEY (Id)
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS OffTimeOfferBid (    # 시간외 호가 잔량
 CREATE TABLE IF NOT EXISTS EstimatedOfferBid (  # 예상 호가 잔량
 	Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     Code CHAR(6) NOT NULL,  # 종목코드
-    Time DATETIME NOT NULL,    # 시각
+    Time DATETIME(6) NOT NULL,    # 시각
 	SyncOfferBid TINYINT UNSIGNED NOT NULL,  # 동시호가 구분
 	EstmPrice DECIMAL(15,2) NOT NULL,    # 예상 체결가
 	EstmDiffSign TINYINT UNSIGNED NOT NULL,  # 예상 등락부호
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS EstimatedOfferBid (  # 예상 호가 잔량
 CREATE TABLE IF NOT EXISTS ETF_NAV (    # ETF NAV
     Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     Code CHAR(6) NOT NULL,  # 종목코드
-    Time DATETIME NOT NULL,    # 시각
+    Time DATETIME(6) NOT NULL,    # 시각
 	DiffSign TINYINT UNSIGNED NOT NULL, # 등락부호
 	Diff DECIMAL(15,2) NOT NULL,    # 등락폭
 	Current DECIMAL(15,2) NOT NULL,    # 현재가 NAV
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS ETF_NAV (    # ETF NAV
 CREATE TABLE IF NOT EXISTS SectorIndex (    # 업종지수
     Id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     Code CHAR(2) NOT NULL,  # 업종코드
-    Time DATETIME NOT NULL,    # 시각
+    Time DATETIME(6) NOT NULL,    # 시각
     IndexValue FLOAT NOT NULL, # 현재값
     DiffSign TINYINT UNSIGNED NOT NULL, # 등락부호
     Diff FLOAT NOT NULL, # 등락폭

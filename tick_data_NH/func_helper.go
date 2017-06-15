@@ -35,7 +35,68 @@ package main
 
 import (
 	"github.com/ghts/lib"
+	"database/sql"
+	"bytes"
+	"fmt"
+	"gopkg.in/ini.v1"
 )
+
+
+var 열린db *sql.DB = nil
+
+func fMySQL_DB() (db *sql.DB, 에러 error) {
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
+		M에러: &에러,
+		M함수: func() { db, 열린db = nil, nil }})
+
+	// 열린 DB가 정상적이면 재사용
+	if 열린db != nil && 열린db.Ping() == nil {
+		db = 열린db
+		return db, nil
+	}
+
+	// 새로운 DB접속 생성
+	아이디, 암호, DB명 := fMySQL_접속정보()
+	DB접속_문자열 := 아이디 + ":" + 암호 + "@tcp(127.0.0.1:3306)/" + DB명 + "?charset=utf8mb4&parseTime=true&loc=Local"
+	db, 에러 = sql.Open("mysql", DB접속_문자열)
+	lib.F에러2패닉(에러)
+	lib.F에러2패닉(db.Ping())
+	열린db = db
+
+	return db, nil
+}
+
+func fMySQL_접속정보() (아이디, 암호, DB명 string) {
+	const 설정화일_경로 = "config.ini"
+
+	if lib.F파일_없음(설정화일_경로) {
+		버퍼 := new(bytes.Buffer)
+		버퍼.WriteString("DB 설정화일 없음\n")
+		버퍼.WriteString("%v가 존재하지 않습니다.\n")
+		버퍼.WriteString("config.ini.sample를 참조하여 새로 생성하십시오.")
+		lib.F패닉(fmt.Errorf(버퍼.String(), 설정화일_경로))
+	}
+
+	cfg파일, 에러 := ini.Load(설정화일_경로)
+	lib.F에러2패닉(에러)
+
+	섹션, 에러 := cfg파일.GetSection("MySQL")
+	lib.F에러2패닉(에러)
+
+	키_ID, 에러 := 섹션.GetKey("ID")
+	lib.F에러2패닉(에러)
+	아이디 = 키_ID.String()
+
+	키_PWD, 에러 := 섹션.GetKey("PWD")
+	lib.F에러2패닉(에러)
+	암호 = 키_PWD.String()
+
+	키_DB명, 에러 := 섹션.GetKey("DB")
+	lib.F에러2패닉(에러)
+	DB명 = 키_DB명.String()
+
+	return
+}
 
 func fTX실행(sql문 string, 인자_모음 ...interface{}) (에러 error) {
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{M에러 : &에러})
@@ -57,7 +118,7 @@ func fTX실행(sql문 string, 인자_모음 ...interface{}) (에러 error) {
 	return 에러
 }
 
-func f정수값_질의(sql문 string, 인자_모음 ...interface{}) (값 int, 에러 error) {
+func f질의_정수값(sql문 string, 인자_모음 ...interface{}) (값 int, 에러 error) {
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
 		M에러 : &에러,
 		M함수 : func() { 값 = 0 }})
@@ -68,4 +129,15 @@ func f정수값_질의(sql문 string, 인자_모음 ...interface{}) (값 int, �
 	lib.F에러2패닉(db.QueryRow(sql문, 인자_모음...).Scan(&값))
 
 	return 값, 에러
+}
+
+func f질의_Rows(sql문 string, 인자_모음 ...interface{}) (레코드_모음 *sql.Rows, 에러 error) {
+	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
+		M에러 : &에러,
+		M함수 : func() { 레코드_모음.Close() }})
+
+	db, 에러 := fMySQL_DB()
+	lib.F에러2패닉(에러)
+
+	return db.Query(sql문, 인자_모음...)
 }
