@@ -200,8 +200,8 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 	버퍼.WriteString( "Time,")
 	버퍼.WriteString( "DiffSign,")
 	버퍼.WriteString( "Diff,")
-	버퍼.WriteString( "DiffRate,")
 	버퍼.WriteString( "MarketPrice,")
+	버퍼.WriteString( "DiffRate,")
 	버퍼.WriteString( "High,")
 	버퍼.WriteString( "Low,")
 	버퍼.WriteString( "OfferPrice,")
@@ -358,7 +358,7 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 				s.M누적_거래량,
 				s.M전일대비_거래량_비율,
 				s.M변동_거래량,
-				s.M거래_대금_100만,
+				s.M거래_대금_백만,
 				s.M시가,
 				s.M가중_평균_가격,
 				s.M시장구분)
@@ -394,14 +394,14 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 				s.M등락부호,
 				s.M등락폭,
 				s.M거래량,
-				s.M거래_대금,
+				s.M거래대금,
 				s.M개장값,
 				s.M최고값,
 				s.M최고값_시각,
 				s.M최저값,
 				s.M최저값_시각,
 				s.M지수_등락율,
-				s.M거래_비중)
+				s.M거래비중)
 
 			lib.F에러2패닉(에러)
 		default:

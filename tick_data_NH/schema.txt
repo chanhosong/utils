@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS Deal (   # 체결
     Time  DATETIME(6) NOT NULL,    # 시각
     DiffSign TINYINT UNSIGNED NOT NULL,  # 등락부호
     Diff DECIMAL(15,2) NOT NULL, # 등락폭
-    DiffRate FLOAT NOT NULL,    # 등락율
     MarketPrice DECIMAL(15,2) NOT NULL, # 현재가
+    DiffRate FLOAT NOT NULL,    # 등락율
     High DECIMAL(15,2) NOT NULL,    # 고가
     Low DECIMAL(15,2) NOT NULL, # 저가
     OfferPrice DECIMAL(15,2) NOT NULL,  # 매도 호가
