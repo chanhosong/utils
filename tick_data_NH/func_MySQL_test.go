@@ -58,8 +58,8 @@ func TestMySQL_DB(t *testing.T) {
 	db.Close()
 }
 
-func f실시간_데이터_저장_MySQL_테스트_도우미(t *testing.T, 테이블명 string, 종목코드 string,
-	값_생성함수 func() interface{}) (값_모음 []interface{}) {
+func f실시간_데이터_저장_MySQL_테스트_도우미(t *testing.T,
+	테이블명 string, 종목코드 string, 값_생성함수 func() interface{}) (값_모음 []interface{}) {
 
 	버퍼 := new(bytes.Buffer)
 	버퍼.WriteString("DELETE FROM " + 테이블명 + " ")
@@ -172,11 +172,8 @@ func Test실시간_데이터_저장_MySQL_호가잔량(t *testing.T) {
 
 		일치하는_값_찾음 := false
 
-		lib.F체크포인트(레코드값, "레코드")
-
-		for i, 인터페이스_값 := range 값_모음 {
+		for _, 인터페이스_값 := range 값_모음 {
 			값 := 인터페이스_값.(*lib.NH호가_잔량)
-			lib.F체크포인트(값, i)
 
 			if 값.M종목코드 == 레코드값.M종목코드 &&
 				lib.F같음(값.M시각, 레코드값.M시각) &&
@@ -227,8 +224,6 @@ func Test실시간_데이터_저장_MySQL_호가잔량(t *testing.T) {
 		}
 
 		lib.F테스트_참임(t, 일치하는_값_찾음)
-
-		lib.F체크포인트(id)
 	}
 }
 

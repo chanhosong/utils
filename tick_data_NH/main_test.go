@@ -33,7 +33,6 @@ along with GHTS.  If not, see <http://www.gnu.org/licenses/>. */
 
 package main
 
-/*
 import (
 	"testing"
 )
@@ -41,4 +40,3 @@ import (
 func TestFMain(t *testing.T) {
 	main()
 }
-*/

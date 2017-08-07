@@ -43,6 +43,144 @@ import (
 )
 
 var 실시간_데이터_수집_MySQL_고루틴_실행_중 = lib.New안전한_bool(false)
+var sqlNH호가잔량, sqlNH시간외_호가잔량, sqlNH예상_호가잔량, sqlNH체결, sqlNH_ETF_NAV, sqlNH업종지수 string
+var 자료형_NH호가_잔량, 자료형_NH시간외_호가잔량, 자료형_NH예상_호가잔량, 자료형_NH체결 string
+var 자료형_NH_ETF_NAV, 자료형_NH업종지수 string
+
+func init() {
+	버퍼 := new(bytes.Buffer)
+	버퍼.WriteString("INSERT INTO OfferBid (")
+	버퍼.WriteString("Code, Time,")
+	버퍼.WriteString("OfferPrice1, BidPrice1, OfferVolume1, BidVolume1,")
+	버퍼.WriteString("OfferPrice2, BidPrice2, OfferVolume2, BidVolume2,")
+	버퍼.WriteString("OfferPrice3, BidPrice3, OfferVolume3, BidVolume3,")
+	버퍼.WriteString("OfferPrice4, BidPrice4, OfferVolume4, BidVolume4,")
+	버퍼.WriteString("OfferPrice5, BidPrice5, OfferVolume5, BidVolume5,")
+	버퍼.WriteString("OfferPrice6, BidPrice6, OfferVolume6, BidVolume6,")
+	버퍼.WriteString("OfferPrice7, BidPrice7, OfferVolume7, BidVolume7,")
+	버퍼.WriteString("OfferPrice8, BidPrice8, OfferVolume8, BidVolume8,")
+	버퍼.WriteString("OfferPrice9, BidPrice9, OfferVolume9, BidVolume9,")
+	버퍼.WriteString("OfferPrice10, BidPrice10, OfferVolume10, BidVolume10,")
+	버퍼.WriteString("Volume")
+	버퍼.WriteString(") VALUES (")
+	버퍼.WriteString("?, ?, ?, ?, ?, ?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?, ?, ?, ?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?, ?, ?, ?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?, ?, ?, ?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?")
+	버퍼.WriteString(")")
+	sqlNH호가잔량 = 버퍼.String()
+
+	버퍼 = new(bytes.Buffer)
+	버퍼.WriteString("INSERT INTO OffTimeOfferBid (")
+	버퍼.WriteString("Code,")
+	버퍼.WriteString("Time,")
+	버퍼.WriteString("OfferVolume,")
+	버퍼.WriteString("BidVolume")
+	버퍼.WriteString(") VALUES (")
+	버퍼.WriteString("?, ?, ?, ?")
+	버퍼.WriteString(")")
+	sqlNH시간외_호가잔량 = 버퍼.String()
+
+	버퍼 = new(bytes.Buffer)
+	버퍼.WriteString("INSERT INTO EstimatedOfferBid (")
+	버퍼.WriteString("Code,")
+	버퍼.WriteString("Time,")
+	버퍼.WriteString("SyncOfferBid,")
+	버퍼.WriteString("EstmPrice,")
+	버퍼.WriteString("EstmDiffSign,")
+	버퍼.WriteString("EstmDiff,")
+	버퍼.WriteString("EstmDiffRate,")
+	버퍼.WriteString("EstmVolume,")
+	버퍼.WriteString("OfferPrice,")
+	버퍼.WriteString("BidPrice,")
+	버퍼.WriteString("OfferVolume,")
+	버퍼.WriteString("BidVolume")
+	버퍼.WriteString(") VALUES (")
+	버퍼.WriteString("?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?")
+	버퍼.WriteString(")")
+	sqlNH예상_호가잔량 = 버퍼.String()
+
+	버퍼 = new(bytes.Buffer)
+	버퍼.WriteString("INSERT INTO Deal (")
+	버퍼.WriteString("Code,")
+	버퍼.WriteString("Time,")
+	버퍼.WriteString("DiffSign,")
+	버퍼.WriteString("Diff,")
+	버퍼.WriteString("MarketPrice,")
+	버퍼.WriteString("DiffRate,")
+	버퍼.WriteString("High,")
+	버퍼.WriteString("Low,")
+	버퍼.WriteString("OfferPrice,")
+	버퍼.WriteString("BidPrice,")
+	버퍼.WriteString("Volume,")
+	버퍼.WriteString("VsPrevVolRate,")
+	버퍼.WriteString("DiffVolume,")
+	버퍼.WriteString("TrAmount,")
+	버퍼.WriteString("Open,")
+	버퍼.WriteString("WeightAvgPrice,")
+	버퍼.WriteString("Market")
+	버퍼.WriteString(") VALUES (")
+	버퍼.WriteString("?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?")
+	버퍼.WriteString(")")
+	sqlNH체결 = 버퍼.String()
+
+	버퍼 = new(bytes.Buffer)
+	버퍼.WriteString("INSERT INTO ETF_NAV (")
+	버퍼.WriteString("Code,")
+	버퍼.WriteString("Time,")
+	버퍼.WriteString("DiffSign,")
+	버퍼.WriteString("Diff,")
+	버퍼.WriteString("Current,")
+	버퍼.WriteString("Open,")
+	버퍼.WriteString("High,")
+	버퍼.WriteString("Low,")
+	버퍼.WriteString("TrackErrSign,")
+	버퍼.WriteString("TrackingError,")
+	버퍼.WriteString("DivergeSign,")
+	버퍼.WriteString("DivergeRate")
+	버퍼.WriteString(") VALUES (")
+	버퍼.WriteString("?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?")
+	버퍼.WriteString(")")
+	sqlNH_ETF_NAV = 버퍼.String()
+
+	버퍼 = new(bytes.Buffer)
+	버퍼.WriteString("INSERT INTO SectorIndex (")
+	버퍼.WriteString("Code,")
+	버퍼.WriteString("Time,")
+	버퍼.WriteString("IndexValue,")
+	버퍼.WriteString("DiffSign,")
+	버퍼.WriteString("Diff,")
+	버퍼.WriteString("Volume,")
+	버퍼.WriteString("TrAmount,")
+	버퍼.WriteString("Open,")
+	버퍼.WriteString("High,")
+	버퍼.WriteString("HighTime,")
+	버퍼.WriteString("Low,")
+	버퍼.WriteString("LowTime,")
+	버퍼.WriteString("DiffRate,")
+	버퍼.WriteString("TrVolRate")
+	버퍼.WriteString(") VALUES (")
+	버퍼.WriteString("?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?, ?, ?,")
+	버퍼.WriteString("?, ?, ?, ?")
+	버퍼.WriteString(")")
+	sqlNH업종지수 = 버퍼.String()
+
+	자료형_NH호가_잔량 = lib.F자료형_문자열(lib.NH호가_잔량{})
+	자료형_NH시간외_호가잔량 = lib.F자료형_문자열(lib.NH시간외_호가잔량{})
+	자료형_NH예상_호가잔량 = lib.F자료형_문자열(lib.NH예상_호가잔량{})
+	자료형_NH체결 = lib.F자료형_문자열(lib.NH체결{})
+	자료형_NH_ETF_NAV = lib.F자료형_문자열(lib.NH_ETF_NAV{})
+	자료형_NH업종지수 = lib.F자료형_문자열(lib.NH업종지수{})
+}
 
 func f실시간_데이터_수집_NH_ETF_MySQL(종목코드_모음 []string) (db *sql.DB, 에러 error) {
 	defer lib.F에러패닉_처리(lib.S에러패닉_처리{
@@ -136,144 +274,8 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 	tx, 에러 = db.Begin()
 	lib.F에러2패닉(에러)
 
-	버퍼 := new(bytes.Buffer)
-	버퍼.WriteString("INSERT INTO OfferBid (")
-	버퍼.WriteString( "Code, Time,")
-	버퍼.WriteString( "OfferPrice1, BidPrice1, OfferVolume1, BidVolume1,")
-	버퍼.WriteString( "OfferPrice2, BidPrice2, OfferVolume2, BidVolume2,")
-	버퍼.WriteString( "OfferPrice3, BidPrice3, OfferVolume3, BidVolume3,")
-	버퍼.WriteString( "OfferPrice4, BidPrice4, OfferVolume4, BidVolume4,")
-	버퍼.WriteString( "OfferPrice5, BidPrice5, OfferVolume5, BidVolume5,")
-	버퍼.WriteString( "OfferPrice6, BidPrice6, OfferVolume6, BidVolume6,")
-	버퍼.WriteString( "OfferPrice7, BidPrice7, OfferVolume7, BidVolume7,")
-	버퍼.WriteString( "OfferPrice8, BidPrice8, OfferVolume8, BidVolume8,")
-	버퍼.WriteString( "OfferPrice9, BidPrice9, OfferVolume9, BidVolume9,")
-	버퍼.WriteString( "OfferPrice10, BidPrice10, OfferVolume10, BidVolume10,")
-	버퍼.WriteString( "Volume")
-	버퍼.WriteString(") VALUES (")
-	버퍼.WriteString("?, ?, ?, ?, ?, ?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?, ?, ?, ?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?, ?, ?, ?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?, ?, ?, ?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?")
-	버퍼.WriteString(")")
-	stmtNH호가잔량, 에러 := tx.Prepare(버퍼.String())
-	lib.F에러2패닉(에러)
-
-	버퍼 = new(bytes.Buffer)
-	버퍼.WriteString("INSERT INTO OffTimeOfferBid (")
-	버퍼.WriteString( "Code,")
-	버퍼.WriteString( "Time,")
-	버퍼.WriteString( "OfferVolume,")
-	버퍼.WriteString( "BidVolume")
-	버퍼.WriteString(") VALUES (")
-	버퍼.WriteString("?, ?, ?, ?")
-	버퍼.WriteString(")")
-	stmtNH시간외_호가잔량, 에러 := tx.Prepare(버퍼.String())
-	lib.F에러2패닉(에러)
-
-	버퍼 = new(bytes.Buffer)
-	버퍼.WriteString("INSERT INTO EstimatedOfferBid (")
-	버퍼.WriteString( "Code,")
-	버퍼.WriteString( "Time,")
-	버퍼.WriteString( "SyncOfferBid,")
-	버퍼.WriteString( "EstmPrice,")
-	버퍼.WriteString( "EstmDiffSign,")
-	버퍼.WriteString( "EstmDiff,")
-	버퍼.WriteString( "EstmDiffRate,")
-	버퍼.WriteString( "EstmVolume,")
-	버퍼.WriteString( "OfferPrice,")
-	버퍼.WriteString( "BidPrice,")
-	버퍼.WriteString( "OfferVolume,")
-	버퍼.WriteString( "BidVolume")
-	버퍼.WriteString(") VALUES (")
-	버퍼.WriteString("?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?")
-	버퍼.WriteString(")")
-	stmtNH예상_호가잔량, 에러 := tx.Prepare(버퍼.String())
-	lib.F에러2패닉(에러)
-
-	버퍼 = new(bytes.Buffer)
-	버퍼.WriteString("INSERT INTO Deal (")
-	버퍼.WriteString( "Code,")
-	버퍼.WriteString( "Time,")
-	버퍼.WriteString( "DiffSign,")
-	버퍼.WriteString( "Diff,")
-	버퍼.WriteString( "MarketPrice,")
-	버퍼.WriteString( "DiffRate,")
-	버퍼.WriteString( "High,")
-	버퍼.WriteString( "Low,")
-	버퍼.WriteString( "OfferPrice,")
-	버퍼.WriteString( "BidPrice,")
-	버퍼.WriteString( "Volume,")
-	버퍼.WriteString( "VsPrevVolRate,")
-	버퍼.WriteString( "DiffVolume,")
-	버퍼.WriteString( "TrAmount,")
-	버퍼.WriteString( "Open,")
-	버퍼.WriteString( "WeightAvgPrice,")
-	버퍼.WriteString( "Market")
-	버퍼.WriteString(") VALUES (")
-	버퍼.WriteString("?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?")
-	버퍼.WriteString(")")
-	stmtNH체결, 에러 := tx.Prepare(버퍼.String())
-	lib.F에러2패닉(에러)
-
-	버퍼 = new(bytes.Buffer)
-	버퍼.WriteString("INSERT INTO ETF_NAV (")
-	버퍼.WriteString( "Code,")
-	버퍼.WriteString( "Time,")
-	버퍼.WriteString( "DiffSign,")
-	버퍼.WriteString( "Diff,")
-	버퍼.WriteString( "Current,")
-	버퍼.WriteString( "Open,")
-	버퍼.WriteString( "High,")
-	버퍼.WriteString( "Low,")
-	버퍼.WriteString( "TrackErrSign,")
-	버퍼.WriteString( "TrackingError,")
-	버퍼.WriteString( "DivergeSign,")
-	버퍼.WriteString( "DivergeRate")
-	버퍼.WriteString(") VALUES (")
-	버퍼.WriteString("?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?")
-	버퍼.WriteString(")")
-	stmtNH_ETF_NAV, 에러 := tx.Prepare(버퍼.String())
-	lib.F에러2패닉(에러)
-
-	버퍼 = new(bytes.Buffer)
-	버퍼.WriteString("INSERT INTO SectorIndex (")
-	버퍼.WriteString( "Code,")
-	버퍼.WriteString( "Time,")
-	버퍼.WriteString( "IndexValue,")
-	버퍼.WriteString( "DiffSign,")
-	버퍼.WriteString( "Diff,")
-	버퍼.WriteString( "Volume,")
-	버퍼.WriteString( "TrAmount,")
-	버퍼.WriteString( "Open,")
-	버퍼.WriteString( "High,")
-	버퍼.WriteString( "HighTime,")
-	버퍼.WriteString( "Low,")
-	버퍼.WriteString( "LowTime,")
-	버퍼.WriteString( "DiffRate,")
-	버퍼.WriteString( "TrVolRate")
-	버퍼.WriteString(") VALUES (")
-	버퍼.WriteString("?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?, ?, ?,")
-	버퍼.WriteString("?, ?, ?, ?")
-	버퍼.WriteString(")")
-	stmtNH업종지수, 에러 := tx.Prepare(버퍼.String())
-	lib.F에러2패닉(에러)
-
-	NH호가_잔량 := lib.F자료형_문자열(lib.NH호가_잔량{})
-	NH시간외_호가잔량 := lib.F자료형_문자열(lib.NH시간외_호가잔량{})
-	NH예상_호가잔량 := lib.F자료형_문자열(lib.NH예상_호가잔량{})
-	NH체결 := lib.F자료형_문자열(lib.NH체결{})
-	NH_ETF_NAV := lib.F자료형_문자열(lib.NH_ETF_NAV{})
-	NH업종지수 := lib.F자료형_문자열(lib.NH업종지수{})
+	var stmtNH호가잔량, stmtNH시간외_호가잔량, stmtNH예상_호가잔량 *sql.Stmt
+	var stmtNH체결, stmtNH_ETF_NAV, stmtNH업종지수 *sql.Stmt
 
 	롤백_해야함 = true
 	길이 := len(ch대기열)
@@ -285,7 +287,7 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 		lib.F조건부_패닉(수신_메시지.G길이() != 1, "예상하지 못한 메시지 길이. %v", 수신_메시지.G길이())
 
 		switch 수신_메시지.G자료형_문자열(0) {
-		case NH호가_잔량:
+		case 자료형_NH호가_잔량:
 			s := new(lib.NH호가_잔량)
 			lib.F에러2패닉(수신_메시지.G값(0, s))
 
@@ -293,6 +295,11 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 			lib.F조건부_패닉(len(s.M매도_호가_모음) < 10, "매도 호가 모음 데이터 부족", len(s.M매도_호가_모음))
 			lib.F조건부_패닉(len(s.M매수_잔량_모음) < 10, "매수 잔량 모음 데이터 부족", len(s.M매수_잔량_모음))
 			lib.F조건부_패닉(len(s.M매수_호가_모음) < 10, "매수 호가 모음 데이터 부족", len(s.M매수_호가_모음))
+
+			if stmtNH호가잔량 == nil {
+				stmtNH호가잔량, 에러 = tx.Prepare(sqlNH호가잔량)
+				lib.F에러2패닉(에러)
+			}
 
 			_, 에러 = stmtNH호가잔량.Exec(
 				s.M종목코드,
@@ -310,9 +317,14 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 				s.M누적_거래량)
 
 			lib.F에러2패닉(에러)
-		case NH시간외_호가잔량:
+		case 자료형_NH시간외_호가잔량:
 			s := new(lib.NH시간외_호가잔량)
 			lib.F에러2패닉(수신_메시지.G값(0, s))
+
+			if stmtNH시간외_호가잔량 == nil {
+				stmtNH시간외_호가잔량, 에러 = tx.Prepare(sqlNH시간외_호가잔량)
+				lib.F에러2패닉(에러)
+			}
 
 			_, 에러 = stmtNH시간외_호가잔량.Exec(
 				s.M종목코드,
@@ -321,9 +333,14 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 				s.M총_매수호가_잔량)
 
 			lib.F에러2패닉(에러)
-		case NH예상_호가잔량:
+		case 자료형_NH예상_호가잔량:
 			s := new(lib.NH예상_호가잔량)
 			lib.F에러2패닉(수신_메시지.G값(0, s))
+
+			if stmtNH예상_호가잔량 == nil {
+				stmtNH예상_호가잔량, 에러 = tx.Prepare(sqlNH예상_호가잔량)
+				lib.F에러2패닉(에러)
+			}
 
 			_, 에러 = stmtNH예상_호가잔량.Exec(
 				s.M종목코드,
@@ -340,9 +357,14 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 				s.M매수_호가잔량)
 
 			lib.F에러2패닉(에러)
-		case NH체결:
+		case 자료형_NH체결:
 			s := new(lib.NH체결)
 			lib.F에러2패닉(수신_메시지.G값(0, s))
+
+			if stmtNH체결 == nil {
+				stmtNH체결, 에러 = tx.Prepare(sqlNH체결)
+				lib.F에러2패닉(에러)
+			}
 
 			_, 에러 = stmtNH체결.Exec(
 				s.M종목코드,
@@ -358,15 +380,20 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 				s.M누적_거래량,
 				s.M전일대비_거래량_비율,
 				s.M변동_거래량,
-				s.M거래_대금_백만,
+				s.M거래대금_100만,
 				s.M시가,
 				s.M가중_평균_가격,
 				s.M시장구분)
 
 			lib.F에러2패닉(에러)
-		case NH_ETF_NAV:
+		case 자료형_NH_ETF_NAV:
 			s := new(lib.NH_ETF_NAV)
 			lib.F에러2패닉(수신_메시지.G값(0, s))
+
+			if stmtNH_ETF_NAV == nil {
+				stmtNH_ETF_NAV, 에러 = tx.Prepare(sqlNH_ETF_NAV)
+				lib.F에러2패닉(에러)
+			}
 
 			_, 에러 = stmtNH_ETF_NAV.Exec(
 				s.M종목코드,
@@ -383,9 +410,14 @@ func fNH_실시간_데이터_저장_MySQL(ch대기열 chan lib.I소켓_메시지
 				s.M괴리율)
 
 			lib.F에러2패닉(에러)
-		case NH업종지수:
+		case 자료형_NH업종지수:
 			s := new(lib.NH업종지수)
 			lib.F에러2패닉(수신_메시지.G값(0, s))
+
+			if stmtNH업종지수 == nil {
+				stmtNH업종지수, 에러 = tx.Prepare(sqlNH업종지수)
+				lib.F에러2패닉(에러)
+			}
 
 			_, 에러 = stmtNH업종지수.Exec(
 				s.M업종코드,
