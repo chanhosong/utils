@@ -39,6 +39,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"strings"
+	"time"
 )
 
 func main() {
@@ -48,7 +49,7 @@ func main() {
 		M에러: &에러,
 		M함수 : func() { lib.F에러_출력(에러) }})
 
-	// TODO :  시작하기 전에 시간 동기화
+	lib.F메모("시작하기 전에 시간 동기화할 것.")
 
 	lib.F에러2패닉(nh.F접속_NH())
 
@@ -82,13 +83,13 @@ func main() {
 	for _, 종목 := range 종목_모음 {
 		검색된_종목, 에러 := lib.F종목by코드(종목.G코드())
 		lib.F에러2패닉(에러)
+
 		lib.F조건부_패닉(strings.Replace(종목.G이름(), " ", "", -1) != strings.Replace(검색된_종목.G이름(), " ", "", -1),
 			"잘못된 종목 이름. %v %v", 종목.G이름(), 검색된_종목.G이름())
+
 		lib.F조건부_패닉(종목.G시장구분() != 검색된_종목.G시장구분(),
 			"잘못된 시장 구분. %v %v", 종목.G시장구분(), 검색된_종목.G시장구분())
 	}
-
-	lib.F문자열_출력("종목 %v개 설정 완료", len(종목_모음))
 
 	종목코드_모음 := lib.F2종목코드_모음(종목_모음)
 
@@ -98,19 +99,20 @@ func main() {
 	lib.F에러2패닉(에러)
 	defer db.Close()
 
-	lib.F문자열_출력("실시간 데이터 수집 시작")
+	lib.F체크포인트()
 
-	//금일_문자열 := time.Now().Format(lib.P일자_형식)
-	//저장수량_체크 := time.NewTicker(lib.P1분)
-	//일자바뀜_체크 := time.NewTicker(lib.P10초)
-	//
-	//if lib.F테스트_모드_실행_중() {
-	//	저장수량_체크 = time.NewTicker(lib.P10초)
-	//}
+	if lib.F테스트_모드_실행_중() {
+		time.Sleep(lib.P10초)
+	} else {
+		time.Sleep(7 * 24 * time.Hour)
+	}
 
-	defer func() {
-		nh.F실시간_데이터_해지_NH_ETF(종목코드_모음)
-	}()
+
+	lib.F체크포인트()
+
+	// 정리
+	nh.F실시간_데이터_해지_NH_ETF(종목코드_모음)
+	lib.F공통_종료_채널_닫은_후_재설정()
 }
 
 type S더미 struct {}
